@@ -8,6 +8,7 @@ import mysql.connector
 import random
 import json
 from dotenv import load_dotenv
+
 load_dotenv()
 
 from voice_assist_v2.backendcareer.routes.api import api_bp
@@ -20,8 +21,6 @@ app = Flask(
 )
 
 CORS(app)
-
-# ---------- DATABASE ----------
 
 def get_db():
     return mysql.connector.connect(
