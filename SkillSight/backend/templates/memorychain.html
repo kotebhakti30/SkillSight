@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Chain — SkillSight</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Nunito',sans-serif;
+  background:linear-gradient(135deg,#f4f7ff 0%,#eaf2ff 100%);
+  min-height:100vh;
+  text-align:center;
+  padding:20px 16px 40px;
+  color:#1e2a4a;
+}
+
+h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,6vw,52px);
+  color:#1a3fb3;
+  margin:20px 0 6px 0;
+}
+
+#levelBadge{
+  display:inline-block;
+  background:#1a3fb3;color:white;
+  font-size:15px;font-weight:700;
+  padding:6px 22px;border-radius:20px;
+  margin:6px auto 4px;
+  font-family:'Nunito',sans-serif;
+}
+
+/* ── TOP SCORE DISPLAY ── */
+#scoreDisplay{
+  font-size:28px;margin:10px auto;color:#1a3fb3;
+  font-weight:800;font-family:'Playfair Display',serif;
+  transition:all 0.4s;
+}
+#scoreDisplay.bump{
+  transform:scale(1.4);
+  color:#27ae60;
+}
+
+#streakBox{font-size:20px;color:#e67e22;font-weight:bold;margin:4px;min-height:26px;}
+#livesBox{font-size:26px;letter-spacing:6px;margin:4px;}
+
+/* ── PROGRESS DOTS ── */
+#progressDots{display:flex;justify-content:center;gap:10px;margin:10px auto;}
+.pDot{width:16px;height:16px;border-radius:50%;background:#ddd;transition:all 0.3s;}
+.pDot.done{background:#27ae60;}
+.pDot.current{background:#2b5ed7;transform:scale(1.3);}
+.pDot.failed{background:#e74c3c;}
+
+/* ── CHAIN DISPLAY BOX ── */
+#chainBox{
+  background:white;border-radius:20px;
+  padding:24px 20px;max-width:560px;
+  margin:16px auto;
+  box-shadow:0 8px 28px rgba(0,0,0,0.1);
+  border-top:5px solid #2b5ed7;min-height:90px;
+}
+#chainLabel{font-size:13px;color:#888;margin-bottom:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;}
+#chainWords{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;min-height:44px;}
+.chainWord{
+  font-size:20px;font-weight:700;padding:8px 18px;
+  border-radius:12px;border:2px solid #2b5ed7;
+  background:#eaf2ff;color:#1a3fb3;
+  animation:popIn 0.3s ease;
+}
+.chainWord.hidden{background:#1a3fb3;color:#1a3fb3;border-color:#1a3fb3;user-select:none;}
+.chainWord.correct{background:#c8f7c5;border-color:#27ae60;color:#1a8a4a;}
+.chainWord.wrong{background:#ffd5d5;border-color:#e74c3c;color:#c0392b;}
+.chainWord.current{
+  background:#2b5ed7;color:white;border-color:#1a3fb3;
+  box-shadow:0 0 14px rgba(43,94,215,0.5);
+  animation:pulse 0.8s infinite;
+}
+@keyframes popIn{0%{transform:scale(0.5);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ── STATUS BOX ── */
+#statusBox{
+  background:white;border-radius:16px;padding:16px 20px;
+  max-width:560px;margin:12px auto;
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);min-height:60px;
+}
+#statusText{font-size:20px;color:#1a3fb3;font-weight:700;}
+#subText{font-size:14px;color:#666;margin-top:6px;}
+
+/* ── ANSWER BOX ── */
+#answerBox{
+  display:none;background:#f0fff4;
+  border:2px solid #27ae60;border-radius:16px;
+  padding:14px 20px;max-width:560px;margin:12px auto;
+}
+#answerLabel{font-size:13px;color:#27ae60;font-weight:700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+#answerWords{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;min-height:36px;}
+.answerWord{
+  font-size:18px;font-weight:700;padding:6px 16px;
+  border-radius:10px;background:#27ae60;color:white;
+  animation:popIn 0.2s ease;
+}
+
+/* ── MIC / WAVEFORM ── */
+#micArea{margin:14px auto;}
+#waveform{display:flex;align-items:center;justify-content:center;gap:5px;height:44px;margin:6px auto;}
+#waveform span{display:inline-block;width:6px;background:#2b5ed7;border-radius:3px;height:6px;}
+#waveform.active span:nth-child(1){animation:wave 0.5s 0.00s infinite ease-in-out;}
+#waveform.active span:nth-child(2){animation:wave 0.5s 0.08s infinite ease-in-out;}
+#waveform.active span:nth-child(3){animation:wave 0.5s 0.16s infinite ease-in-out;}
+#waveform.active span:nth-child(4){animation:wave 0.5s 0.24s infinite ease-in-out;}
+#waveform.active span:nth-child(5){animation:wave 0.5s 0.32s infinite ease-in-out;}
+#waveform.active span:nth-child(6){animation:wave 0.5s 0.24s infinite ease-in-out;}
+#waveform.active span:nth-child(7){animation:wave 0.5s 0.16s infinite ease-in-out;}
+#waveform.active span:nth-child(8){animation:wave 0.5s 0.08s infinite ease-in-out;}
+@keyframes wave{0%,100%{height:5px}50%{height:36px}}
+#micStatus{font-size:16px;color:#555;margin:6px;min-height:22px;font-weight:600;}
+
+/* ── SCORE OUT OF 5 DISPLAY ── */
+#roundScoreBox{
+  display:none;
+  background:white;border-radius:16px;padding:16px 24px;
+  max-width:400px;margin:12px auto;
+  box-shadow:0 4px 16px rgba(0,0,0,0.1);
+  border-left:6px solid #2b5ed7;
+}
+#roundScoreText{font-size:22px;font-weight:800;color:#1a3fb3;font-family:'Playfair Display',serif;}
+#roundScoreSub{font-size:14px;color:#666;margin-top:4px;}
+
+/* ── CONFETTI ── */
+#confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none;}
+
+/* ── COMPLETE SCREEN ── */
+#completeScreen{display:none;padding:20px;}
+#rankBadge{font-size:90px;margin:20px 0;animation:bounce 0.6s infinite alternate;}
+@keyframes bounce{0%{transform:scale(1)}100%{transform:scale(1.12)}}
+#rankTitle{font-size:36px;color:#1a3fb3;margin:10px 0;font-family:'Playfair Display',serif;font-weight:800;}
+#completeMsg{font-size:18px;color:#444;margin:10px 0;}
+
+#resultsTable{
+  background:white;border-radius:16px;padding:20px;
+  max-width:560px;margin:20px auto;
+  box-shadow:0 4px 16px rgba(0,0,0,0.08);
+}
+#resultsTable h3{color:#1a3fb3;margin:0 0 14px 0;font-family:'Playfair Display',serif;}
+.resultRow{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 14px;border-radius:10px;margin:5px 0;font-size:15px;font-weight:600;
+}
+.resultRow.won{background:#c8f7c5;color:#1a8a4a;}
+.resultRow.lost{background:#ffd5d5;color:#c0392b;}
+
+.actionBtn{
+  font-size:18px;padding:14px 36px;border:none;
+  background:#2b5ed7;color:white;border-radius:12px;
+  cursor:pointer;margin:8px;transition:0.2s;
+  font-family:'Nunito',sans-serif;font-weight:700;
+}
+.actionBtn:hover{background:#1a3fb3;transform:translateY(-2px);}
+.topBar{display:flex;justify-content:flex-start;max-width:560px;margin:0 auto 14px;padding:0 10px;}
+.backBtn{font-size:16px;padding:10px 18px;border:none;background:#ffffff;color:#1a3fb3;border:2px solid rgba(26,63,179,0.15);border-radius:14px;cursor:pointer;box-shadow:0 6px 18px rgba(43,94,215,0.08);transition:0.2s;display:inline-flex;align-items:center;gap:8px;}
+.backBtn:hover{background:#eaf2ff;}
+
+@keyframes flashGreen{0%{background:#c8f7c5}100%{background:transparent}}
+@keyframes flashRed{0%{background:#ffd5d5}100%{background:transparent}}
+.flash-correct{animation:flashGreen 0.7s ease-out;}
+.flash-wrong{animation:flashRed 0.7s ease-out;}
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+<div class="topBar">
+  <button class="backBtn" onclick="goBackHome()">← Back</button>
+</div>
+
+<!-- ══ GAME SCREEN ══ -->
+<div id="gameScreen">
+  <h1>🧠 Memory Chain</h1>
+  <div id="levelBadge">Loading...</div>
+  <div id="scoreDisplay">Score: 0</div>
+  <div id="streakBox"></div>
+  <div id="livesBox">🪙🪙🪙</div>
+  <div id="progressDots"></div>
+
+  <div id="chainBox">
+    <div id="chainLabel">REMEMBER THIS CHAIN</div>
+    <div id="chainWords"></div>
+  </div>
+
+  <div id="answerBox">
+    <div id="answerLabel">🎤 Your answer so far</div>
+    <div id="answerWords"></div>
+  </div>
+
+  <!-- Round score out of N -->
+  <div id="roundScoreBox">
+    <div id="roundScoreText"></div>
+    <div id="roundScoreSub"></div>
+  </div>
+
+  <div id="statusBox">
+    <div id="statusText">Get ready!</div>
+    <div id="subText">Listen carefully and repeat the words in order</div>
+  </div>
+
+  <div id="micArea">
+    <div id="waveform">
+      <span></span><span></span><span></span><span></span>
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div id="micStatus"></div>
+  </div>
+</div>
+
+<!-- ══ COMPLETE SCREEN ══ -->
+<div id="completeScreen">
+  <h1>🧠 Memory Chain</h1>
+  <div id="rankBadge"></div>
+  <div id="rankTitle"></div>
+  <div id="completeMsg"></div>
+  <div id="resultsTable">
+    <h3>📋 Round Results</h3>
+    <div id="resultsList"></div>
+  </div>
+  <button type="button" class="actionBtn" onclick="restartGame()" style="margin-top:16px;">🔄 Play Again</button>
+  <p id="autoReturnMsg" style="font-size:14px;color:#888;margin-top:14px;">Returning to home in 5 seconds...</p>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  MEMORY CHAIN — Fully voice-driven, DB-connected
+//  - Fetches words from memory_chain table in MySQL (skillsite DB)
+//  - Speaks all instructions, reads out words
+//  - Accepts voice answers word by word
+//  - Scores out of 5 words per round, updates score at top
+//  - Saves final score to DB
+// ═══════════════════════════════════════════════════════════════
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition
+
+// ── GAME CONFIG ────────────────────────────────────────────────
+const WORDS_PER_ROUND = 5     // always 5 words per round
+const TOTAL_ROUNDS    = 5     // 5 rounds total
+
+// ── STATE ──────────────────────────────────────────────────────
+let sequences    = []
+let currentChain = []
+let heardWords   = []
+let currentRound = 0
+let score        = 0
+let lives        = 3
+let streak       = 0
+let roundResults = []
+let gameStopped  = false
+let activeRec    = null
+
+// ── DOM HELPERS ────────────────────────────────────────────────
+function $(id){ return document.getElementById(id) }
+
+function killRec(){
+  if(activeRec){ try{activeRec.abort()}catch(e){} activeRec=null }
+  setWave(false)
+}
+
+function setWave(on){
+  $("waveform").classList.toggle("active", on)
+}
+
+function setMic(msg){
+  $("micStatus").innerText = msg
+}
+
+function setStatus(main, sub){
+  $("statusText").innerText = main
+  $("subText").innerText    = sub || ""
+}
+
+function updateScoreDisplay(){
+  let el = $("scoreDisplay")
+  el.innerText = "Score: " + score
+  el.classList.add("bump")
+  setTimeout(()=> el.classList.remove("bump"), 450)
+}
+
+function updateLives(){
+  $("livesBox").innerText = "🪙".repeat(Math.max(0, lives))
+}
+
+function updateStreak(){
+  $("streakBox").innerText = streak >= 2 ? "🔥 " + streak + " streak!" : ""
+}
+
+function buildDots(){
+  let box = $("progressDots")
+  box.innerHTML = ""
+  for(let i=0;i<TOTAL_ROUNDS;i++){
+    let d = document.createElement("div")
+    d.className = "pDot" + (i===0?" current":"")
+    d.id = "dot_"+i
+    box.appendChild(d)
+  }
+}
+
+function markDot(i, state){
+  let d = $("dot_"+i)
+  if(d) d.className = "pDot " + state
+}
+
+function renderChain(chain, reveal){
+  let box = $("chainWords")
+  box.innerHTML = ""
+  chain.forEach((w,i)=>{
+    let el = document.createElement("div")
+    el.className = "chainWord" + (reveal ? "" : " hidden")
+    el.id = "cw_"+i
+    el.innerText = reveal ? w : "?"
+    box.appendChild(el)
+  })
+}
+
+function revealWord(i){
+  let el = $("cw_"+i)
+  if(!el) return
+  el.classList.remove("hidden")
+  el.innerText = currentChain[i]
+  el.classList.add("current")
+  setTimeout(()=> el.classList.remove("current"), 600)
+}
+
+function markWord(i, correct){
+  let el = $("cw_"+i)
+  if(!el) return
+  el.classList.remove("hidden","current")
+  el.classList.add(correct ? "correct" : "wrong")
+  if(!correct) el.innerText = currentChain[i]
+}
+
+function renderAnswer(){
+  $("answerWords").innerHTML = heardWords
+    .map(w=>`<div class="answerWord">${w}</div>`).join("")
+}
+
+function showRoundScore(correct, total){
+  let box = $("roundScoreBox")
+  box.style.display = "block"
+  $("roundScoreText").innerText = correct + " / " + total + " words correct"
+  $("roundScoreSub").innerText  = correct===total ? "Perfect round! 🎉" : "Keep going, you can do it!"
+}
+
+// ── SPEAK ──────────────────────────────────────────────────────
+function speak(text, rate){
+  return new Promise(resolve=>{
+    window.speechSynthesis.cancel()
+    let u = new SpeechSynthesisUtterance(text)
+    u.lang  = "en-IN"
+    u.rate  = rate || 0.9
+    u.pitch = 1.05
+    u.onend  = ()=> resolve()
+    u.onerror= ()=> resolve()
+    window.speechSynthesis.speak(u)
+    // Safety timeout
+    setTimeout(resolve, text.length * 80 + 2500)
+  })
+}
+
+// ── LISTEN FOR ONE WORD ────────────────────────────────────────
+function listenOneWord(promptMsg, timeoutMs){
+  return new Promise((resolve, reject)=>{
+    if(!SR){ reject("no-sr"); return }
+    killRec()
+    setWave(true)
+    setMic(promptMsg || "🎤 Listening...")
+
+    let rec = new SR()
+    activeRec = rec
+    rec.lang           = "en-IN"
+    rec.continuous     = false
+    rec.interimResults = true
+    rec.maxAlternatives= 5
+
+    let fired = false
+    let timer = setTimeout(()=>{
+      if(!fired){ fired=true; activeRec=null; try{rec.abort()}catch(e){}; resolve("__timeout__") }
+    }, timeoutMs || 8000)
+
+    rec.onresult = function(e){
+      if(activeRec!==rec || fired) return
+      let interim=""
+      for(let i=0;i<e.results.length;i++) interim+=e.results[i][0].transcript
+      if(interim) setMic("Hearing: " + interim)
+
+      // Check for STOP
+      let allTexts=[]
+      for(let i=0;i<e.results.length;i++)
+        for(let j=0;j<e.results[i].length;j++)
+          allTexts.push(e.results[i][j].transcript.toLowerCase().trim())
+      if(allTexts.some(t=>t==="stop"||t.includes("stop game")||t.includes("exit")||t.includes("quit"))){
+        if(!fired){ fired=true; clearTimeout(timer); activeRec=null; try{rec.abort()}catch(e){}; reject("stop") }
+        return
+      }
+      if(allTexts.some(t=>t==="back"||t.includes("go back")||t.includes("go home")||t==="home")){
+        if(!fired){ fired=true; clearTimeout(timer); activeRec=null; try{rec.abort()}catch(e){}; reject("back") }
+        return
+      }
+
+      for(let i=0;i<e.results.length;i++){
+        if(e.results[i].isFinal && !fired){
+          fired=true; clearTimeout(timer); activeRec=null
+          try{rec.stop()}catch(e){}
+          let word = e.results[i][0].transcript.trim().split(" ")[0]
+          resolve(word)
+          return
+        }
+      }
+    }
+
+    rec.onerror = function(e){
+      if(activeRec!==rec) return; activeRec=null
+      if(!fired){
+        fired=true; clearTimeout(timer)
+        if(e.error==="not-allowed"){ setMic("⚠️ Mic denied. Please allow microphone."); reject("denied"); return }
+        if(e.error==="aborted"){ resolve("__aborted__"); return }
+        resolve("__error__")
+      }
+    }
+
+    rec.onend = function(){
+      if(activeRec===rec){ activeRec=null
+        if(!fired){ fired=true; clearTimeout(timer); resolve("__ended__") }
+      }
+    }
+
+    try{ rec.start() }catch(e){ clearTimeout(timer); reject("start-error") }
+  })
+}
+
+function delay(ms){ return new Promise(r=>setTimeout(r,ms)) }
+
+function goBackHome(){
+  gameStopped = true
+  killRec()
+  window.speechSynthesis.cancel()
+  window.location.href = "backend/templates/fun.html"
+}
+
+// ── LOAD SEQUENCES FROM DB ─────────────────────────────────────
+async function loadSequences(){
+  try{
+    let res  = await fetch("/api/game-data/memory_chain")
+    if(!res.ok) throw new Error("HTTP "+res.status)
+    let data = await res.json()
+    let raw  = data.sequences || []
+    sequences = raw.map(s=>{
+      if(Array.isArray(s)) return s
+      try{ return JSON.parse(s) }catch(e){ return [String(s)] }
+    }).filter(s=>s.length>0)
+    console.log("[DB] Loaded", sequences.length, "sequences from", data.source)
+  }catch(err){
+    console.warn("[DB] Load failed:", err)
+    sequences = []
+  }
+}
+
+// Pick exactly WORDS_PER_ROUND words from DB sequences
+function pickChain(){
+  let pool = []
+  sequences.forEach(s=> s.forEach(w=>{ if(w) pool.push(w) }))
+
+  if(pool.length === 0){
+    // Absolute fallback only if DB is completely unavailable
+    pool = ["Lion","Tiger","Elephant","Monkey","Parrot","Apple","Mango","Banana","Orange","Grape",
+            "Red","Blue","Green","Yellow","Purple","Chair","Table","Lamp","Book","Clock"]
+  }
+
+  // Shuffle pool and take first WORDS_PER_ROUND unique words
+  let shuffled = pool.sort(()=>Math.random()-0.5)
+  let picked = []
+  let seen = new Set()
+  for(let w of shuffled){
+    let wl = w.toLowerCase()
+    if(!seen.has(wl)){ seen.add(wl); picked.push(w) }
+    if(picked.length >= WORDS_PER_ROUND) break
+  }
+  // If still not enough, pad with numbers
+  while(picked.length < WORDS_PER_ROUND) picked.push("word"+(picked.length+1))
+  return picked
+}
+
+// ── SAVE SCORE TO DB ───────────────────────────────────────────
+function saveScore(){
+  let won = roundResults.filter(r=>r.won).length
+  sessionStorage.setItem("totalScore",
+    (parseInt(sessionStorage.getItem("totalScore"))||0)+score)
+  if(!sessionStorage.getItem("played_memory")){
+    sessionStorage.setItem("gamesPlayed",
+      (parseInt(sessionStorage.getItem("gamesPlayed"))||0)+1)
+    sessionStorage.setItem("played_memory","true")
+  }
+  fetch("/api/save-session",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body: JSON.stringify({
+  userId: localStorage.getItem("userId"),
+  module: "fun",
+  game: "memory",
+  correct: score,
+  total: TOTAL_ROUNDS
+})
+  }).then(r=>r.json()).then(d=>console.log("[Score saved]",d))
+    .catch(e=>console.warn("[Score not saved]",e))
+}
+
+// ══════════════════════════════════════════════════════════════
+//  MAIN GAME FLOW
+// ══════════════════════════════════════════════════════════════
+
+async function startGame(){
+  currentRound=0; score=0; lives=3; streak=0
+  roundResults=[]; gameStopped=false
+  sessionStorage.removeItem("played_memory")
+  killRec()
+
+  updateScoreDisplay(); updateLives(); updateStreak(); buildDots()
+  $("answerBox").style.display     = "none"
+  $("roundScoreBox").style.display = "none"
+  $("levelBadge").innerText        = "Loading from database..."
+  $("gameScreen").style.display    = "block"
+  $("completeScreen").style.display= "none"
+
+  setStatus("Loading words from database...", "Please wait")
+  setMic("")
+
+  await loadSequences()
+
+  $("levelBadge").innerText = "Round 1 of " + TOTAL_ROUNDS
+  setStatus("Get ready!", "Listen and repeat " + WORDS_PER_ROUND + " words in order")
+
+  await speak("Welcome to Memory Chain! I will read out " + WORDS_PER_ROUND + " words from the database. Listen carefully and then repeat them all in the same order. Each round you score points out of " + WORDS_PER_ROUND + ". Ready? Let us begin!")
+  await runRound()
+}
+
+async function runRound(){
+  if(gameStopped) return
+  if(currentRound >= TOTAL_ROUNDS){ await endGame(); return }
+
+  heardWords   = []
+  currentChain = pickChain()
+
+  $("levelBadge").innerText        = "Round " + (currentRound+1) + " of " + TOTAL_ROUNDS
+  $("answerBox").style.display     = "none"
+  $("roundScoreBox").style.display = "none"
+  markDot(currentRound, "current")
+
+  setStatus("🔊 Listen to " + WORDS_PER_ROUND + " words!", "Remember all of them in order")
+  renderChain(currentChain, false)
+
+  await speak("Round " + (currentRound+1) + ". Listen to these " + WORDS_PER_ROUND + " words carefully.")
+  if(gameStopped) return
+
+  // Speak each word with reveal animation
+  for(let i=0; i<currentChain.length; i++){
+    if(gameStopped) return
+    revealWord(i)
+    await speak(currentChain[i], 0.85)
+    await delay(500)
+  }
+  if(gameStopped) return
+
+  // Hide chain and go to listening phase
+  renderChain(currentChain, false)
+  $("answerBox").style.display  = "block"
+  $("answerWords").innerHTML    = ""
+  heardWords = []
+
+  setStatus("🎤 Your turn! Say all " + WORDS_PER_ROUND + " words", "Speak each word clearly, one by one")
+  await speak("Now repeat the words. Say all " + WORDS_PER_ROUND + " words in the same order. Word number one.")
+  if(gameStopped) return
+
+  // Collect all WORDS_PER_ROUND words
+  for(let i=0; i<currentChain.length; i++){
+    if(gameStopped) return
+    let prompt = "🎤 Word " + (i+1) + " of " + currentChain.length
+    setMic(prompt)
+
+    // Announce which word we're waiting for (except first — already announced)
+    if(i > 0){
+      await speak("Word " + (i+1) + ".", 1.0)
+      if(gameStopped) return
+    }
+
+    let word
+    try{
+      word = await listenOneWord(prompt, 9000)
+    }catch(reason){
+      if(reason==="stop"){ gameStopped=true; await endGame(); return }
+      if(reason==="back"){ goBackHome(); return }
+      if(reason==="denied"){ return }
+      word = "__timeout__"
+    }
+    if(gameStopped) return
+
+    if(word==="__timeout__"||word==="__aborted__"||word==="__ended__"||word==="__error__"){
+      heardWords.push("???")
+      await speak("No answer heard. Moving on.", 1.0)
+    } else {
+      heardWords.push(word)
+    }
+    renderAnswer()
+  }
+
+  await checkAnswer()
+}
+
+async function checkAnswer(){
+  killRec(); setWave(false)
+  renderChain(currentChain, true)
+
+  let correct = 0
+  currentChain.forEach((word,i)=>{
+    let heard    = (heardWords[i]||"").toLowerCase().trim()
+    let expected = word.toLowerCase().trim()
+    let match    = heard===expected || heard.includes(expected) || expected.includes(heard)
+    markWord(i, match)
+    if(match) correct++
+  })
+
+  let allCorrect = (correct === currentChain.length)
+  roundResults.push({
+    round: currentRound+1,
+    won: allCorrect,
+    chain: currentChain.join(", "),
+    correct, total: currentChain.length,
+    score: correct + "/" + currentChain.length
+  })
+
+  // Update score — points = correct words this round
+  score += correct
+  updateScoreDisplay()
+  showRoundScore(correct, currentChain.length)
+
+  if(allCorrect){
+    streak++
+    updateStreak()
+    markDot(currentRound, "done")
+    document.body.className = "flash-correct"
+    setTimeout(()=>document.body.className="", 700)
+    let msg = streak>=3 ? "Amazing! " + streak + " perfect rounds in a row!" : "Excellent! All " + correct + " words correct!"
+    setStatus("✅ Perfect round!", "Score: " + score + " points")
+    await speak(msg + " Your score is now " + score + " out of " + ((currentRound+1)*WORDS_PER_ROUND) + " possible.", 0.9)
+    launchConfetti(true)
+  } else {
+    lives--; streak = 0
+    updateLives(); updateStreak()
+    markDot(currentRound, "failed")
+    document.body.className = "flash-wrong"
+    setTimeout(()=>document.body.className="", 700)
+    setStatus("Round done — " + correct + "/" + currentChain.length + " correct", "The words were: " + currentChain.join(", "))
+    await speak("You got " + correct + " out of " + currentChain.length + " words. The correct order was: " + currentChain.join(", ") + ". Your score is now " + score + ".", 0.9)
+    if(lives<=0){ await speak("No lives left. Game over!", 0.9); await endGame(); return }
+  }
+
+  currentRound++
+  if(currentRound >= TOTAL_ROUNDS){ await endGame(); return }
+  await delay(800)
+  await speak("Next round coming up.", 1.0)
+  await runRound()
+}
+
+// ── END GAME ───────────────────────────────────────────────────
+async function endGame(){
+  killRec()
+  window.speechSynthesis.cancel()
+
+  let maxPossible = TOTAL_ROUNDS * WORDS_PER_ROUND
+  let won = roundResults.filter(r=>r.won).length
+  let rank, badge, msg
+
+  if(won>=TOTAL_ROUNDS)        { rank="Memory Legend"; badge="🏆"; msg="Flawless! Perfect memory!" }
+  else if(won>=TOTAL_ROUNDS-1) { rank="Memory Master"; badge="🥇"; msg="Outstanding performance!" }
+  else if(won>=TOTAL_ROUNDS-2) { rank="Chain Expert";  badge="🥈"; msg="Excellent work!" }
+  else if(won>=TOTAL_ROUNDS-3) { rank="Chain Learner"; badge="🥉"; msg="Good effort! Keep practicing!" }
+  else                         { rank="Beginner";      badge="🌱"; msg="Practice makes perfect!" }
+
+  $("gameScreen").style.display    = "none"
+  $("completeScreen").style.display= "block"
+  $("rankBadge").innerText  = badge
+  $("rankTitle").innerText  = rank
+  $("completeMsg").innerText= "Final Score: " + score + " out of " + maxPossible + " | Rounds won: " + won + "/" + roundResults.length + ". " + msg
+
+  $("resultsList").innerHTML = roundResults.map(r=>
+    `<div class="resultRow ${r.won?"won":"lost"}">
+      <span>Round ${r.round}</span>
+      <span>${r.correct}/${r.total} words</span>
+      <span>${r.won?"✅ Perfect":"❌ "+r.score}</span>
+    </div>`
+  ).join("")
+
+  saveScore()
+  launchConfetti(false)
+
+  await speak("Game over! Your final score is " + score + " out of " + maxPossible + " points. You got perfect rounds " + won + " out of " + roundResults.length + " times. Rank: " + rank + ". " + msg, 0.9)
+  setTimeout(()=>{ window.location="backend/templates/fun.html" }, 5500)
+}
+
+function restartGame(){
+  $("completeScreen").style.display="none"
+  $("gameScreen").style.display    ="block"
+  startGame()
+}
+
+// ── CONFETTI ───────────────────────────────────────────────────
+function launchConfetti(mini){
+  let canvas=$("confettiCanvas")
+  canvas.style.display="block"
+  let ctx=canvas.getContext("2d")
+  canvas.width=window.innerWidth; canvas.height=window.innerHeight
+  let n=mini?60:180
+  let pieces=Array.from({length:n},()=>({
+    x:Math.random()*canvas.width, y:Math.random()*canvas.height-canvas.height,
+    w:Math.random()*12+4, h:Math.random()*6+4,
+    color:["#2b5ed7","#f39c12","#2ecc71","#e74c3c","#9b59b6","#1abc9c"][Math.floor(Math.random()*6)],
+    rot:Math.random()*360, speed:Math.random()*4+2, spin:Math.random()*4-2
+  }))
+  let frame=0, max=mini?110:300
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height)
+    pieces.forEach(p=>{
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180)
+      ctx.fillStyle=p.color; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctx.restore()
+      p.y+=p.speed; p.rot+=p.spin; if(p.y>canvas.height) p.y=-10
+    })
+    frame++; if(frame<max) requestAnimationFrame(draw); else canvas.style.display="none"
+  }
+  draw()
+}
+
+// ── BOOT ───────────────────────────────────────────────────────
+window.onload = function(){
+  if(!SR){
+    $("micStatus").innerText="⚠️ Voice not supported. Please use Chrome or Edge."
+    setStatus("Voice not supported","Use Chrome or Edge on Android/Desktop")
+    return
+  }
+  setStatus("Requesting microphone...", "Please allow mic access")
+  navigator.mediaDevices.getUserMedia({audio:true})
+    .then(stream=>{
+      stream.getTracks().forEach(t=>t.stop())
+      startGame()
+    })
+    .catch(()=>{
+      $("micStatus").innerText="⚠️ Microphone permission denied. Please allow and refresh."
+      setStatus("Mic denied","Please allow microphone access and reload the page")
+    })
+}
+</script>
+</body>
+</html>

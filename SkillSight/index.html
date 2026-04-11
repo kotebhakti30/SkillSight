@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>SkillSight</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<img src="logo.png" alt="SkillSight Logo" width="200">
+
+
+<!-- LOGIN FORM -->
+<form id="login-form" class="active" autocomplete="off" novalidate>
+
+<label for="email">Email:</label>
+<input 
+type="email"
+id="email"
+name="email"
+placeholder="Enter your email"
+autocomplete="off"
+required
+>
+
+<label for="password">Password:</label>
+<input 
+type="password"
+id="password"
+name="password"
+placeholder="Enter your password"
+autocomplete="current-password"
+required
+>
+
+<button type="submit">Login</button>
+
+<p class="form-link">
+Don't have an account?
+<a href="#" id="login-to-signup">Sign Up</a>
+</p>
+
+</form>
+
+
+<!-- SIGNUP FORM -->
+<form id="signup-form" autocomplete="off" novalidate>
+
+<label for="signup-name">Full Name:</label>
+<input 
+type="text"
+id="signup-name"
+name="name"
+placeholder="Enter your full name"
+autocomplete="off"
+required
+>
+
+<label for="signup-email">Email:</label>
+<input 
+type="email"
+id="signup-email"
+name="email"
+placeholder="Enter your email"
+autocomplete="off"
+required
+>
+
+<label for="signup-password">Password:</label>
+<input 
+type="password"
+id="signup-password"
+name="password"
+placeholder="Create a password"
+autocomplete="new-password"
+required
+>
+
+<label for="confirm-password">Confirm Password:</label>
+<input 
+type="password"
+id="confirm-password"
+name="confirm-password"
+placeholder="Confirm your password"
+autocomplete="new-password"
+required
+>
+
+<button type="submit">Sign Up</button>
+
+<p class="form-link">
+Already have an account?
+<a href="#" id="signup-to-login">Login</a>
+</p>
+
+</form>
+<div id="popupOverlay" style="display:none;">
+  <div id="jumpBackPopup">
+    <p>Logged Out! Jump back in?</p>
+    <button onclick="jumpBack()">Yes</button>
+    <button onclick="stayHere()">No</button>
+  </div>
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

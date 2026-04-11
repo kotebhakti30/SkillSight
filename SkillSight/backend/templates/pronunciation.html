@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skillsight — Pronunciation Practice</title>
+  <link rel="stylesheet" href="/backend/static/pronunciation.css" />
+</head>
+<body>
+  <button class="logout-btn" onclick="logoutUser()">Logout</button>
+
+<div class="container" role="main" aria-live="polite">
+
+  <!-- ── WELCOME SCREEN ── -->
+  <div id="welcomeScreen" role="region" aria-label="Welcome screen">
+    <a class="back" id="backBtnn">← Back</a>
+<h1>Pronunciation Practice</h1>
+<p class="subtitle-label">Listen, Record, and Compare</p>
+    <div class="word-card welcome-card">
+      <h2>Welcome to Pronunciation Practice</h2>
+      <p class="welcome-sub">Everything works by voice.</p>
+    </div>
+    <button class="btn primary"   id="newSessionBtn"  aria-label="Start a new session">▶ New Session</button>
+    <button class="btn secondary" id="prevSessionBtn" aria-label="Open previous sessions">📂 Previous Sessions</button>
+  </div>
+
+  <!-- ── PREVIOUS SESSIONS SCREEN ── -->
+  <div id="sessionsScreen" style="display:none;" role="region" aria-label="Previous sessions">
+    <h2 class="screen-title">Previous Sessions</h2>
+    <div id="sessionsList" role="list"></div>
+    <button class="btn outline" id="backToWelcomeBtn" aria-label="Go back to welcome screen">← Back</button>
+  </div>
+
+  <!-- ── SESSION DETAIL SCREEN ── -->
+  <div id="sessionDetailScreen" style="display:none;" role="region" aria-label="Session detail">
+    <h2 class="screen-title" id="sessionDetailTitle"></h2>
+    <div id="sessionDetailContent" role="list"></div>
+    <button class="btn outline" id="backToSessionsBtn" aria-label="Go back to sessions list">← Back to Sessions</button>
+  </div>
+
+  <!-- ── PRACTICE SCREEN ── -->
+<div id="practiceScreen" style="display:none;" role="region" aria-label="Practice screen">
+ <a class="back" id="backBtn" role="button" tabindex="0" aria-label="Go to home screen">← Back</a>
+   
+<h1>Practice Session</h1>
+<p class="subtitle-label">Listen, Record, and Compare</p>
+    <div class="word-card" aria-live="assertive">
+      <p class="label" aria-hidden="true">Practice Word:</p>
+      <h2 id="word" aria-label="Current word">___</h2>
+    </div>
+
+    <div class="btn-grid" role="group" aria-label="Practice controls">
+      <button class="btn primary"   id="playBtn"       aria-label="Play the word">▶ Play</button>
+      <button class="btn secondary" id="recordBtn"     aria-label="Record your voice">● Record</button>
+      <button class="btn danger"    id="stopRecordBtn" aria-label="Stop recording" style="display:none;">■ Stop Recording</button>
+      <button class="btn warning"   id="stopSessionBtn"aria-label="Stop this session">⏹ Stop Session</button>
+      <button class="btn nav"       id="nextBtn"       aria-label="Go to next word">Next ›</button>
+      <button class="btn nav"       id="backWordBtn"   aria-label="Go to previous word">‹ Previous Word</button>
+    </div>
+
+    <div class="subtitle-box" id="subtitle" role="status" aria-live="polite" aria-label="Voice output">
+      Tap anywhere or press a button to start.
+    </div>
+
+    <div class="feedback-box" id="feedbackBox" role="alert" aria-live="assertive" style="display:none;">
+      <span class="feedback-icon" id="feedbackIcon" aria-hidden="true"></span>
+      <span id="feedbackText"></span>
+    </div>
+
+  </div>
+
+  <!-- ── SUMMARY SCREEN ── -->
+  <div id="summaryScreen" style="display:none;" role="region" aria-label="Session summary">
+    <div class="word-card summary-card">
+      <h2>Session Complete! 🎉</h2>
+      <p id="summaryStats"></p>
+      <div id="summaryList" role="list"></div>
+    </div>
+    <button class="btn primary" id="newSessionFromSummaryBtn"   aria-label="Start a new session">▶ New Session</button>
+    <button class="btn outline" id="viewSessionsFromSummaryBtn" aria-label="View previous sessions">📂 View Sessions</button>
+  </div>
+
+</div><!-- /.container -->
+
+<script src="/backend/static/pronunciation.js"></script>
+</body>
+</html>

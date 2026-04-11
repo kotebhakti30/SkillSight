@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fill the Story</title>
+<link rel="stylesheet" href="/static/style.css">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;}
+body{font-family:'Nunito',sans-serif;background:linear-gradient(135deg,#eaf2ff,#ffffff);text-align:center;margin:0;min-height:100vh;overflow-x:hidden;}
+
+/* BG DECOR */
+.bg-decor{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.bg-circle{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(43,94,215,0.07),transparent 70%);}
+.bc1{width:500px;height:500px;top:-150px;right:-100px;animation:drift 12s ease-in-out infinite;}
+.bc2{width:350px;height:350px;bottom:-80px;left:-80px;animation:drift 10s 3s ease-in-out infinite reverse;}
+@keyframes drift{0%,100%{transform:translate(0,0);}50%{transform:translate(20px,-20px);}}
+
+.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:0 24px 40px 24px;}
+
+/* HEADER */
+header{padding:36px 0 8px 0;text-align:center;animation:slideDown 0.5s ease both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
+.logo-back{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:#e67e22;font-weight:700;text-decoration:none;background:rgba(230,126,34,0.1);border:1.5px solid rgba(230,126,34,0.2);padding:6px 14px;border-radius:20px;margin-bottom:16px;transition:background 0.2s;}
+.logo-back:hover{background:rgba(230,126,34,0.18);}
+h1{font-family:'Playfair Display',serif;font-size:52px;font-weight:800;color:#c0392b;margin:0 0 4px 0;letter-spacing:-1px;}
+.subtitle{font-size:14px;color:#e67e22;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;}
+
+/* TOP BAR */
+#topBar{display:flex;justify-content:center;align-items:center;gap:16px;margin:0 0 20px 0;flex-wrap:wrap;animation:fadeUp 0.5s 0.1s ease both;}
+.topPill{background:white;border:1.5px solid rgba(192,57,43,0.15);border-radius:20px;padding:8px 18px;font-size:15px;font-weight:700;color:#c0392b;box-shadow:0 2px 8px rgba(192,57,43,0.08);}
+#storyNumPill{background:linear-gradient(135deg,#e67e22,#c0392b);color:white;border:none;}
+
+/* STORY DISPLAY */
+#storyBox{
+  background:white;border-radius:22px;
+  padding:28px 32px;max-width:680px;
+  margin:0 auto 18px auto;
+  box-shadow:0 8px 32px rgba(192,57,43,0.10);
+  border-left:5px solid #e67e22;
+  min-height:130px;text-align:left;
+  position:relative;animation:fadeUp 0.5s 0.2s ease both;
+}
+#storyLabel{font-size:12px;font-weight:700;color:#e67e22;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+#storyText{
+  font-size:19px;line-height:1.8;color:#2c3e50;
+  font-family:'Playfair Display',serif;
+  min-height:60px;
+}
+/* blank slot styling */
+.blank{
+  display:inline-block;
+  background:#fff3e0;
+  border:2px dashed #e67e22;
+  border-radius:8px;
+  padding:2px 14px;
+  min-width:80px;
+  color:#c0392b;
+  font-weight:700;
+  font-style:italic;
+  animation:blankPulse 1.5s ease-in-out infinite;
+}
+@keyframes blankPulse{0%,100%{border-color:#e67e22;background:#fff3e0;}50%{border-color:#c0392b;background:#fde8d0;}}
+.filled-word{
+  display:inline-block;
+  background:linear-gradient(135deg,#e67e22,#c0392b);
+  color:white;border-radius:8px;
+  padding:2px 14px;font-weight:700;
+  animation:wordPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes wordPop{0%{transform:scale(0.5);opacity:0;}100%{transform:scale(1);opacity:1;}}
+
+/* PROMPT BOX */
+#promptBox{
+  background:white;border-radius:18px;
+  padding:20px 24px;max-width:580px;
+  margin:0 auto 16px auto;
+  box-shadow:0 4px 20px rgba(0,0,0,0.08);
+  border-top:4px solid #c0392b;
+  animation:fadeUp 0.5s 0.25s ease both;
+  display:none;
+}
+#promptLabel{font-size:12px;font-weight:700;color:#c0392b;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+#promptText{font-size:20px;color:#2c3e50;font-weight:700;line-height:1.5;}
+
+/* MIC AREA */
+#micArea{display:flex;flex-direction:column;align-items:center;gap:14px;margin:16px 0;animation:fadeUp 0.5s 0.3s ease both;}
+.mic-outer{position:relative;width:90px;height:90px;cursor:pointer;}
+.mic-wave{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(230,126,34,0.3);animation:wavePulse 2.4s ease-out infinite;}
+.mic-wave:nth-child(2){animation-delay:0.8s;}
+.mic-wave:nth-child(3){animation-delay:1.6s;}
+@keyframes wavePulse{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(2.1);opacity:0;}}
+.mic-outer.listening .mic-wave{border-color:rgba(230,126,34,0.5);}
+.mic-outer.speaking .mic-wave{border-color:rgba(192,57,43,0.6);animation:speakPulse 0.5s ease-out infinite;}
+.mic-outer.speaking .mic-wave:nth-child(2){animation-delay:0.17s;}
+.mic-outer.speaking .mic-wave:nth-child(3){animation-delay:0.34s;}
+@keyframes speakPulse{0%{transform:scale(1);opacity:1;}100%{transform:scale(2.2);opacity:0;}}
+.mic-btn{
+  position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,#e67e22,#c0392b);
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:34px;
+  box-shadow:0 8px 28px rgba(192,57,43,0.35);
+  transition:transform 0.2s,box-shadow 0.2s;z-index:2;
+}
+.mic-btn:hover{transform:scale(1.08);}
+.mic-outer.listening .mic-btn{animation:listenGlow 1.4s ease-in-out infinite;}
+@keyframes listenGlow{0%,100%{box-shadow:0 8px 28px rgba(192,57,43,0.35);}50%{box-shadow:0 8px 52px rgba(192,57,43,0.6),0 0 0 5px rgba(192,57,43,0.12);}}
+.mic-outer.speaking .mic-btn{animation:speakBounce 0.5s ease-in-out infinite alternate;background:linear-gradient(135deg,#c0392b,#922b21);}
+@keyframes speakBounce{0%{transform:scale(1) translateY(0);}100%{transform:scale(1.1) translateY(-5px);}}
+
+/* WAVEFORM */
+#waveBar{display:flex;align-items:center;justify-content:center;gap:4px;height:30px;opacity:0;transition:opacity 0.3s;margin-top:-8px;}
+#waveBar.active{opacity:1;}
+#waveBar span{display:inline-block;width:5px;border-radius:3px;background:#e67e22;height:5px;}
+#waveBar.active span:nth-child(1){animation:barAnim 0.5s 0.00s infinite ease-in-out;}
+#waveBar.active span:nth-child(2){animation:barAnim 0.5s 0.08s infinite ease-in-out;}
+#waveBar.active span:nth-child(3){animation:barAnim 0.5s 0.16s infinite ease-in-out;}
+#waveBar.active span:nth-child(4){animation:barAnim 0.5s 0.24s infinite ease-in-out;}
+#waveBar.active span:nth-child(5){animation:barAnim 0.5s 0.32s infinite ease-in-out;}
+#waveBar.active span:nth-child(6){animation:barAnim 0.5s 0.24s infinite ease-in-out;}
+#waveBar.active span:nth-child(7){animation:barAnim 0.5s 0.16s infinite ease-in-out;}
+@keyframes barAnim{0%,100%{height:4px;}50%{height:26px;}}
+
+#micStatus{font-size:15px;font-weight:600;color:#888;background:white;border:1.5px solid rgba(230,126,34,0.2);padding:9px 22px;border-radius:22px;min-width:260px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.05);transition:all 0.3s;}
+#micStatus.listening{color:#e67e22;border-color:rgba(230,126,34,0.4);background:#fff8f0;}
+#micStatus.speaking{color:#c0392b;border-color:rgba(192,57,43,0.3);background:#fdf0ed;}
+#micStatus.heard{color:#27ae60;border-color:rgba(39,174,96,0.3);background:#f0fdf4;}
+
+/* PROGRESS BAR */
+#progressWrap{max-width:580px;margin:0 auto 16px auto;animation:fadeUp 0.5s 0.35s ease both;}
+#progressBar{background:#ffe0cc;border-radius:10px;height:10px;overflow:hidden;}
+#progressFill{height:10px;background:linear-gradient(90deg,#e67e22,#c0392b);border-radius:10px;transition:width 0.5s ease;}
+#progressLabel{font-size:13px;color:#e67e22;font-weight:700;margin-top:5px;}
+
+/* STORY COLLECTION - shows all filled words */
+#wordCollection{
+  background:white;border-radius:18px;
+  padding:16px 20px;max-width:580px;
+  margin:0 auto 16px auto;
+  box-shadow:0 4px 16px rgba(0,0,0,0.07);
+  display:none;animation:fadeUp 0.4s ease both;
+}
+#wordCollection h3{font-size:13px;font-weight:700;color:#e67e22;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 10px 0;}
+#wordPills{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.wordPill{font-size:14px;font-weight:700;padding:5px 14px;border-radius:20px;background:linear-gradient(135deg,#fdebd0,#fad7a0);color:#c0392b;border:1.5px solid rgba(192,57,43,0.2);}
+
+/* STOP BUTTON */
+#stopBtn{font-size:17px;padding:12px 30px;border:none;background:#e74c3c;color:white;border-radius:12px;cursor:pointer;margin:8px;transition:0.2s;box-shadow:0 4px 14px rgba(231,76,60,0.25);}
+#stopBtn:hover{background:#c0392b;}
+
+/* COMPLETE SCREEN */
+#completeScreen{display:none;padding:40px 20px;animation:fadeUp 0.5s ease both;}
+#completeBadge{font-size:90px;margin:20px 0;animation:bounce 0.6s infinite alternate;}
+@keyframes bounce{0%{transform:scale(1);}100%{transform:scale(1.15);}}
+#completeTitle{font-family:'Playfair Display',serif;font-size:38px;font-weight:800;color:#c0392b;margin:10px 0;}
+#completeMsg{font-size:18px;color:#555;margin:8px 0 24px 0;}
+#finalStoryBox{
+  background:white;border-radius:20px;
+  padding:28px 32px;max-width:640px;
+  margin:0 auto 20px auto;
+  box-shadow:0 8px 28px rgba(192,57,43,0.12);
+  border-left:5px solid #e67e22;
+  text-align:left;
+}
+#finalStoryBox h3{font-size:14px;font-weight:700;color:#e67e22;letter-spacing:1.5px;text-transform:uppercase;margin:0 0 12px 0;}
+#finalStoryText{font-family:'Playfair Display',serif;font-size:18px;line-height:1.9;color:#2c3e50;}
+#autoReturn{font-size:14px;color:#aaa;margin-top:16px;}
+
+/* CONFETTI */
+#confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none;}
+
+/* START SCREEN */
+#startScreen{padding:40px 20px;animation:fadeUp 0.5s ease both;}
+#startScreen h2{font-family:'Playfair Display',serif;font-size:30px;color:#c0392b;margin-bottom:12px;}
+#startScreen p{font-size:17px;color:#666;max-width:500px;margin:0 auto 30px auto;line-height:1.7;}
+.storyOptionGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;max-width:640px;margin:0 auto 28px auto;}
+.storyOption{
+  background:white;border:2px solid rgba(192,57,43,0.15);
+  border-radius:16px;padding:20px 16px;cursor:pointer;
+  transition:transform 0.2s,box-shadow 0.2s,border-color 0.2s;
+  text-align:center;
+}
+.storyOption:hover{transform:translateY(-4px);box-shadow:0 12px 28px rgba(192,57,43,0.15);border-color:#e67e22;}
+.storyOption.selected{border-color:#c0392b;background:#fff8f0;box-shadow:0 0 0 3px rgba(192,57,43,0.12);}
+.storyOption .sIcon{font-size:36px;margin-bottom:8px;}
+.storyOption h4{font-family:'Playfair Display',serif;font-size:17px;color:#c0392b;margin:0 0 4px 0;}
+.storyOption p{font-size:13px;color:#888;margin:0;line-height:1.4;}
+.startBtn{
+  font-size:20px;padding:16px 48px;border:none;
+  background:linear-gradient(135deg,#e67e22,#c0392b);
+  color:white;border-radius:14px;cursor:pointer;
+  box-shadow:0 8px 24px rgba(192,57,43,0.3);
+  transition:transform 0.2s,box-shadow 0.2s;
+  display:none;
+}
+.startBtn:hover{transform:scale(1.04);box-shadow:0 12px 32px rgba(192,57,43,0.4);}
+#startMicStatus{font-size:15px;color:#e67e22;margin-top:14px;font-weight:600;min-height:22px;}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<canvas id="confettiCanvas"></canvas>
+<div class="bg-decor">
+  <div class="bg-circle bc1"></div>
+  <div class="bg-circle bc2"></div>
+</div>
+
+<div class="wrap">
+  <header>
+    <a href="backend/templates/fun.html" class="logo-back">← Home</a>
+    <h1>📖 Fill the Story</h1>
+    <div class="subtitle">Mad Libs Voice Adventure</div>
+  </header>
+
+  <!-- START SCREEN -->
+  <div id="startScreen">
+    <h2>Choose Your Story Theme</h2>
+    <p>Pick a theme and fill in the blanks with your voice to create a hilarious story!</p>
+    <div class="storyOptionGrid">
+      <div class="storyOption" id="opt-jungle" onclick="selectTheme('jungle')">
+        <div class="sIcon">🌿</div>
+        <h4>Jungle Quest</h4>
+        <p>Adventure deep in the wild</p>
+      </div>
+      <div class="storyOption" id="opt-space" onclick="selectTheme('space')">
+        <div class="sIcon">🚀</div>
+        <h4>Space Mission</h4>
+        <p>Blast off to the stars</p>
+      </div>
+      <div class="storyOption" id="opt-school" onclick="selectTheme('school')">
+        <div class="sIcon">🏫</div>
+        <h4>School Day</h4>
+        <p>A very unusual school day</p>
+      </div>
+      <div class="storyOption" id="opt-kingdom" onclick="selectTheme('kingdom')">
+        <div class="sIcon">🏰</div>
+        <h4>Magic Kingdom</h4>
+        <p>Once upon a time...</p>
+      </div>
+    </div>
+    <button class="startBtn" id="startBtn" onclick="beginStory()">▶ Start Story</button>
+    <div id="startMicStatus">🎤 Say a theme name to select it, or click one above</div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" style="display:none;">
+    <div id="topBar">
+      <div class="topPill" id="storyNumPill">Story 1</div>
+      <div class="topPill">⭐ Score: <span id="scoreNum">0</span></div>
+      <div class="topPill">📝 Blanks: <span id="blanksLeft">0</span> left</div>
+    </div>
+
+    <div id="progressWrap">
+      <div id="progressBar"><div id="progressFill" style="width:0%"></div></div>
+      <div id="progressLabel">Filling blank 1...</div>
+    </div>
+
+    <div id="storyBox">
+      <div id="storyLabel">📖 Your Story</div>
+      <div id="storyText"></div>
+    </div>
+
+    <div id="promptBox">
+      <div id="promptLabel">🎤 Say a word for this blank</div>
+      <div id="promptText"></div>
+    </div>
+
+    <div id="wordCollection">
+      <h3>✨ Words you've used</h3>
+      <div id="wordPills"></div>
+    </div>
+
+    <div id="micArea">
+      <div class="mic-outer" id="micOuter">
+        <div class="mic-wave"></div>
+        <div class="mic-wave"></div>
+        <div class="mic-wave"></div>
+        <button class="mic-btn" id="micBtn">🎤</button>
+      </div>
+      <div id="waveBar">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span>
+      </div>
+      <div id="micStatus">Get ready...</div>
+    </div>
+
+    <button id="stopBtn" onclick="triggerStop()">⏹ Stop Story</button>
+  </div>
+
+  <!-- COMPLETE SCREEN -->
+  <div id="completeScreen">
+    <div id="completeBadge"></div>
+    <div id="completeTitle"></div>
+    <div id="completeMsg"></div>
+    <div id="finalStoryBox">
+      <h3>📖 Your Complete Story</h3>
+      <div id="finalStoryText"></div>
+    </div>
+    <div id="autoReturn">Returning to home in 5 seconds...</div>
+    <button style="font-size:18px;padding:14px 36px;border:none;background:linear-gradient(135deg,#e67e22,#c0392b);color:white;border-radius:12px;cursor:pointer;margin-top:16px;" onclick="restartGame()">🔄 Play Again</button>
+  </div>
+</div>
+
+<script>
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
+
+// ── DATA ─────────────────────────────
+let stories = {}
+
+// ── STATE ────────────────────────────
+let selectedTheme = null
+let currentStory  = null
+let blankIndex    = 0
+let filledWords   = []
+let recognition   = null
+let gameStopped   = false
+
+// ── SPEAK ────────────────────────────
+function speak(text, cb){
+  speechSynthesis.cancel()
+
+  setMicState("speaking")
+  setStatus("🔊 " + text)
+
+  let u = new SpeechSynthesisUtterance(text)
+  u.lang = "en-US"
+
+  u.onend = ()=>{
+    setMicState("")
+    if(cb) cb()
+  }
+
+  speechSynthesis.speak(u)
+}
+
+// ── MIC CONTROL ──────────────────────
+function stopMic(){
+  if(recognition){
+    try{ recognition.stop() }catch(e){}
+    recognition = null
+  }
+}
+
+// ── UI ───────────────────────────────
+function setMicState(state){
+  document.getElementById("micOuter").className = "mic-outer " + state
+  document.getElementById("waveBar").className =
+    state === "listening" ? "active" : ""
+}
+
+function setStatus(msg){
+  document.getElementById("micStatus").innerText = msg
+}
+
+// ── RENDER STORY ─────────────────────
+function renderStory(){
+  let template = currentStory.template
+  let wordsIndex = 0
+
+  currentStory.blanks.forEach((b,i)=>{
+
+    let value
+
+    if(i < filledWords.length){
+      value = `<span class="filled-word">${filledWords[i]}</span>`
+    }
+    else if(i === filledWords.length){
+      value = `<span class="blank">???</span>`
+    }
+    else{
+      value = `<span class="blank">___</span>`
+    }
+
+    // 🔥 replace ONLY first occurrence each time (correct mapping)
+    template = template.replace(b.slot, value)
+  })
+
+  // 🔥 SAFETY: remove any leftover brackets like [NAME]
+  template = template.replace(/\[[^\]]+\]/g, "___")
+
+  document.getElementById("storyText").innerHTML = template
+}
+
+// ── SELECT THEME ─────────────────────
+function selectTheme(theme){
+  selectedTheme = theme
+
+  document.querySelectorAll(".storyOption").forEach(o=>o.classList.remove("selected"))
+  document.getElementById("opt-"+theme).classList.add("selected")
+
+  document.getElementById("startBtn").style.display = "inline-block"
+
+  speak(theme + " selected. Click start story or say start.")
+}
+
+// ── START STORY ──────────────────────
+function beginStory(){
+  if(!selectedTheme) return
+
+  stopMic()
+
+  let list = stories[selectedTheme]
+
+  // 🔥 ensure random new story
+  currentStory = list[Math.floor(Math.random()*list.length)]
+
+  blankIndex = 0
+  filledWords = []
+  gameStopped = false
+
+  document.getElementById("startScreen").style.display = "none"
+  document.getElementById("gameScreen").style.display = "block"
+
+  renderStory()
+
+  speak("Let's begin", ()=>{
+    askBlank()
+  })
+}
+
+// ── ASK BLANK ───────────────────────
+function askBlank(){
+  if(blankIndex >= currentStory.blanks.length){
+    finishStory()
+    return
+  }
+
+  let prompt = currentStory.blanks[blankIndex].prompt
+
+  speak(prompt, ()=>{
+    startListening()
+  })
+}
+
+// ── LISTEN ──────────────────────────
+function startListening(){
+  if(!SpeechRec || gameStopped) return
+
+  stopMic()
+
+  recognition = new SpeechRec()
+  recognition.lang = "en-US"
+  recognition.continuous = false
+  recognition.interimResults = false
+
+  let hasSpoken = false   // 🔥 track if user spoke
+
+  setMicState("listening")
+  setStatus("🎤 Listening...")
+
+  recognition.onresult = function(e){
+    hasSpoken = true
+
+    let text = e.results[0][0].transcript.toLowerCase().trim()
+    console.log("User said:", text)
+
+    stopMic()
+
+    if(text.includes("stop")){
+      stopGame()
+      return
+    }
+
+    let word = text.split(" ").pop()
+
+    if(word){
+      acceptWord(word)
+    } else {
+      setTimeout(startListening, 500)
+    }
+  }
+
+  recognition.onerror = function(e){
+    console.log("Mic error:", e.error)
+
+    if(!hasSpoken){
+      setTimeout(startListening, 500)  // 🔁 restart
+    }
+  }
+
+  recognition.onend = function(){
+    console.log("Mic ended")
+
+    // 🔥 restart ONLY if user didn’t speak
+    if(!hasSpoken && !gameStopped){
+      setTimeout(startListening, 500)
+    }
+  }
+
+  recognition.start()
+}
+// ── ACCEPT WORD ─────────────────────
+function acceptWord(word){
+  filledWords.push(word)
+  blankIndex++
+
+  // 🔥 LIVE SCORE UPDATE
+  document.getElementById("scoreNum").innerText = filledWords.length
+  document.getElementById("blanksLeft").innerText =
+  currentStory.blanks.length - filledWords.length
+
+  renderStory()
+
+  setTimeout(askBlank, 400)
+}
+
+// ── FINISH STORY ────────────────────
+function finishStory(){
+
+  let score = filledWords.length
+  let total = currentStory.blanks.length
+document.getElementById("scoreNum").innerText = score
+  // 🔥 SAVE TO BACKEND
+  fetch("/api/save-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: localStorage.getItem("userId"),
+      module: "fun",
+      game: "story",
+      correct: score,
+      total: total
+    })
+  })
+  .then(res => res.json())
+  .then(data => console.log("Story saved:", data))
+  .catch(err => console.error("Save error:", err))
+
+  // 🔥 BUILD STORY
+  let text = currentStory.template
+
+  currentStory.blanks.forEach((b,i)=>{
+    text = text.replace(b.slot, filledWords[i] || "___")
+  })
+
+  document.getElementById("storyText").innerHTML = text
+
+  // 🔥 SPEAK STORY + SCORE
+  speak(
+    "Here is your story. " + text +
+    ". You scored " + score + " out of " + total + ".",
+    ()=>{
+      askToContinue()
+    }
+  )
+}
+
+// ── CONTINUE FLOW ───────────────────
+function askToContinue(){
+  speak("Would you like another story? Say yes to continue or stop to go back.", ()=>{
+    listenContinue()
+  })
+}
+
+function listenContinue(){
+  if(!SpeechRec) return
+
+  stopMic()
+
+  recognition = new SpeechRec()
+  recognition.lang = "en-US"
+  recognition.continuous = false
+  recognition.interimResults = false
+
+  let hasSpoken = false
+
+  setMicState("listening")
+  setStatus("🎤 Say yes or stop")
+
+  recognition.onresult = function(e){
+    hasSpoken = true
+
+    let text = e.results[0][0].transcript.toLowerCase().trim()
+    console.log("User said:", text)
+
+    stopMic()
+
+    text = text.replace(/[^\w\s]/g, "")
+
+    if(
+      text.includes("yes") ||
+      text.includes("yeah") ||
+      text.includes("continue") ||
+      text.includes("again")
+    ){
+      speak("Starting next story", ()=>{
+        beginStory()
+      })
+      return
+    }
+
+    if(
+      text.includes("stop") ||
+      text.includes("no")
+    ){
+      stopGame()
+      return
+    }
+
+    speak("Please say yes or stop", ()=>{
+      listenContinue()
+    })
+  }
+
+  recognition.onerror = function(e){
+    console.log("Mic error:", e.error)
+
+    if(!hasSpoken){
+      setTimeout(listenContinue, 500)
+    }
+  }
+
+  recognition.onend = function(){
+    if(!hasSpoken){
+      setTimeout(listenContinue, 500)
+    }
+  }
+
+  recognition.start()
+}
+
+// ── STOP ────────────────────────────
+function stopGame(){
+  gameStopped = true
+  stopMic()
+  speechSynthesis.cancel()
+
+  speak("Going back to dashboard", ()=>{
+    window.location = "backend/templates/fun.html"
+  })
+}
+
+// 🔥 BUTTON SUPPORT
+function triggerStop(){
+  stopGame()
+}
+
+// ── INIT ────────────────────────────
+window.onload = function(){
+  fetch("/api/game-data/storytelling")
+    .then(res => res.json())
+    .then(data=>{
+      stories = data
+
+      speak("Welcome to fill the story. Choose a theme and click start.")
+    })
+}
+
+</script>
+</body>
+</html>

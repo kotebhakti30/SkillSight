@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work & Career English</title>
+    <link rel="stylesheet" href="../../voice_assist_v2/frontend/static/career.css">
+    <style>
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+        .rec-dot {
+            display: inline-block; width: 10px; height: 10px;
+            background: #ef4444; border-radius: 50%;
+            animation: pulse 1s infinite; margin-right: 6px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <button class="logout-btn" onclick="logoutUser()">Logout</button>
+  <a class="back" id="backBtn" role="button" tabindex="0" aria-label="Go to home screen">← Back</a>
+<!-- HOME SCREEN -->
+<div id="screen-home" class="screen active">
+    <button class="back-link" style="visibility:hidden">← Back</button>
+    <div class="home-title">Work &amp; Career<br>English</div>
+    <div class="home-subtitle">Practice Professional Communication</div>
+    <button class="mode-btn" onclick="pickMode('mock')">Mock Interviews</button>
+    <button class="mode-btn" onclick="pickMode('smalltalk')">Professional Small Talk</button>
+    <button class="mode-btn" onclick="pickMode('presentation')">Presentation Practice</button>
+    <div class="status-box" id="home-status">Tap any button or anywhere on screen to start…</div>
+</div>
+
+<!-- PRACTICE SCREEN -->
+<div id="screen-practice" class="screen">
+    <button class="back-link" onclick="endSession()">← Back</button>
+    <div class="page-title"    id="prac-title">Mock Interviews</div>
+    <div class="page-subtitle" id="prac-sub">Listen, then speak your answer.</div>
+    <div class="progress-wrap"><div class="progress-bar" id="prog-bar" style="width:0%"></div></div>
+    <div class="card">
+        <div class="card-label" id="q-label">Loading…</div>
+        <div class="card-main"  id="q-text">Please wait…</div>
+    </div>
+    <button class="btn btn-blue" id="btn-play"   onclick="replayQuestion()">&#9654; Replay Question</button>
+    <button class="btn btn-blue" id="btn-record" onclick="manualRecord()">&#9679; Record Answer</button>
+    <button class="btn btn-red"  id="btn-stop"   onclick="endSession()">&#9632; End Session</button>
+    <div class="status-box" id="prac-status">Waiting…</div>
+</div>
+
+<script src="../../voice_assist_v2/frontend/static/career.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════
+//  AUDIO CONTEXT UNLOCK
+//  Tap anywhere on the page → unlocks TTS on mobile/Chrome
+// ═══════════════════════════════════════════════════════
+let _appStarted = false;
+
+function _unlockAndStart(e) {
+    if (_appStarted) return;
+    // Only fire on direct user interaction
+    _appStarted = true;
+    document.removeEventListener("click", _unlockAndStart);
+    document.removeEventListener("touchend", _unlockAndStart);
+
+    // Prime AudioContext
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        ctx.resume();
+    } catch(e) {}
+
+    // Prime voices
+    if (window.speechSynthesis) window.speechSynthesis.getVoices();
+
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+        setStatus("home-status", "⚠ Please use Google Chrome or Microsoft Edge.", "error");
+        speak("Please use Google Chrome or Microsoft Edge for this app.");
+        return;
+    }
+
+    // If they already clicked a mode button, pickMode handled it
+    // Otherwise announce home
+    if (!mode) {
+        announceHome();
+    }
+}
+
+// Listen for ANY tap/click to unlock
+document.addEventListener("click",    _unlockAndStart);
+document.addEventListener("touchend", _unlockAndStart);
+
+// ═══════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════
+let mode      = "";
+let questions = [];
+let qIndex    = 0;
+let busy      = false;
+let noSpeechRetries = 0;
+const MAX_RETRIES   = 3;
+
+// ═══════════════════════════════════════════════════════
+//  UTILITIES
+// ═══════════════════════════════════════════════════════
+function show(id) {
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+function setStatus(id, msg, cls) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.textContent = msg;
+    el.className   = "status-box " + (cls || "");
+}
+function setBtns(playDis, recDis) {
+    const bp = document.getElementById("btn-play");
+    const br = document.getElementById("btn-record");
+    if (bp) bp.disabled = playDis;
+    if (br) br.disabled = recDis;
+}
+function setRecBtn(html) {
+    const br = document.getElementById("btn-record");
+    if (br) br.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════
+//  HOME
+// ═══════════════════════════════════════════════════════
+let isHomeAnnounced = false;
+
+function announceHome() {
+    document.getElementById("backBtn").style.display = "inline-block"
+    // Prevent duplicate execution
+    if (isHomeAnnounced) return;
+    isHomeAnnounced = true;
+
+    stopListening();
+
+    if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+    }
+
+    show("screen-home");
+
+    mode = "";
+    questions = [];
+    qIndex = 0;
+    busy = false;
+    noSpeechRetries = 0;
+
+    const msg =
+        "Welcome to Work and Career English. " +
+        "Say: Mock Interviews, Small Talk, or Presentation. " +
+        "Or tap a button to choose.";
+
+    setStatus("home-status", "Say: Mock Interviews, Small Talk, or Presentation.");
+
+    speakAndWait(msg, () => {
+        isHomeAnnounced = false; // reset after speaking
+        listenForMode();
+    });
+}
+
+function listenForMode() {
+    if (mode) return;
+    setStatus("home-status", "Listening for your choice…", "listening");
+    startListening(
+        (text) => {
+            const t = text.toLowerCase();
+            console.log("User said:", speech);
+
+  // 🔥 GLOBAL LOGOUT (ADD THIS ALWAYS FIRST)
+  if (
+    speech.includes("logout") ||
+    speech.includes("log out") ||
+    speech.includes("sign out")
+  ) {
+    speakAndWait("Logging you out", logoutUser);
+    return;
+  }
+            if      (t.includes("mock") || t.includes("interview")) pickMode("mock");
+            else if (t.includes("small") || t.includes("talk"))     pickMode("smalltalk");
+            else if (t.includes("present"))                          pickMode("presentation");
+            else if (t.includes("back") || t.includes("go back") || t.includes("exit")) { window.location.href = "/categories.html";  // 🔥 FIXED
+        }
+            else {
+                speakAndWait(
+                    "Sorry, I didn't catch that. Say: Mock Interviews, Small Talk, or Presentation.",
+                    listenForMode
+                );
+            }
+        },
+        (err) => {
+            if (err === "no-speech") { listenForMode(); return; }
+            setStatus("home-status", err, "error");
+            speakAndWait(err, listenForMode);
+        }
+    );
+}
+
+// ═══════════════════════════════════════════════════════
+//  PICK MODE — called by button OR voice
+// ═══════════════════════════════════════════════════════
+function pickMode(m) {
+    // If app not started yet (user tapped a mode button directly),
+    // mark as started and proceed
+    document.getElementById("backBtn").style.display = "none"
+    if (!_appStarted) {
+        _appStarted = true;
+        document.removeEventListener("click",    _unlockAndStart);
+        document.removeEventListener("touchend", _unlockAndStart);
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            ctx.resume();
+        } catch(e) {}
+        if (window.speechSynthesis) window.speechSynthesis.getVoices();
+    }
+
+    if (busy) return;
+    busy = true;
+    mode = m;
+    stopListening();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+
+    const titles = { mock:"Mock Interviews", smalltalk:"Professional Small Talk", presentation:"Presentation Practice" };
+    document.getElementById("prac-title").textContent = titles[m] || m;
+    show("screen-practice");
+    setStatus("prac-status", "Loading questions…");
+    setBtns(true, true);
+
+    speakAndWait("Loading " + titles[m] + ". Please wait.", () => {
+        fetch("/api/questions/" + m)
+            .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+            .then(data => {
+                if (data.error || !data.questions || !data.questions.length) {
+                    const msg = "Error loading questions. " + (data.error || "Check your database.");
+                    setStatus("prac-status", msg, "error");
+                    speakAndWait(msg, () => { busy = false; });
+                    return;
+                }
+                questions = data.questions;
+                qIndex = 0; noSpeechRetries = 0; busy = false;
+                readQuestion();
+            })
+            .catch(e => {
+                const msg = "Cannot connect to server. Make sure the backend is running.";
+                setStatus("prac-status", msg, "error");
+                speakAndWait(msg, () => { busy = false; });
+            });
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+//  READ QUESTION → AUTO LISTEN
+// ═══════════════════════════════════════════════════════
+function readQuestion() {
+    if (qIndex >= questions.length) { sessionDone(); return; }
+
+    const q = questions[qIndex];
+    const total = questions.length;
+    const num   = qIndex + 1;
+
+    document.getElementById("q-label").textContent = "Question " + num + " of " + total;
+    document.getElementById("q-text").textContent  = q.question;
+    document.getElementById("prog-bar").style.width = ((num / total) * 100) + "%";
+    setBtns(false, false);
+    setRecBtn("&#9679; Record Answer");
+    noSpeechRetries = 0;
+    setStatus("prac-status", "Reading question…");
+
+    speakAndWait(q.question, () => {
+        setStatus("prac-status", "Listening… speak your answer now.", "listening");
+        setRecBtn('<span class="rec-dot"></span> Listening…');
+        autoListen();
+    });
+}
+
+function replayQuestion() {
+    if (busy) return;
+    const q = questions[qIndex];
+    if (!q) return;
+    busy = true;
+    stopListening();
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    setBtns(true, true);
+    setRecBtn("&#9679; Record Answer");
+
+    speakAndWait(q.question, () => {
+        busy = false;
+        setBtns(false, false);
+        noSpeechRetries = 0;
+        setStatus("prac-status", "Listening… speak your answer now.", "listening");
+        setRecBtn('<span class="rec-dot"></span> Listening…');
+        autoListen();
+    });
+}
+
+function manualRecord() {
+    if (busy) return;
+    stopListening();
+    noSpeechRetries = 0;
+    setStatus("prac-status", "Listening… speak your answer now.", "listening");
+    setRecBtn('<span class="rec-dot"></span> Listening…');
+    autoListen();
+}
+
+// ═══════════════════════════════════════════════════════
+//  VOICE COMMAND CHECKER
+//  Returns command string or null
+// ═══════════════════════════════════════════════════════
+function _checkVoiceCommand(text) {
+    const t = text.toLowerCase().trim();
+    if (t.includes("stop") || t.includes("end session") || t.includes("go back") ||
+        t.includes("go home") || t.includes("home screen") || t === "back") {
+        return "stop";
+    }
+    if ((t.includes("next") || t.includes("skip")) && mode === "smalltalk") {
+        return "next";
+    }
+    if (t.includes("replay") || t.includes("repeat") || t.includes("again")) {
+        return "replay";
+    }
+    return null;
+}
+
+// ═══════════════════════════════════════════════════════
+//  AUTO LISTEN — core loop for mock/presentation
+// ═══════════════════════════════════════════════════════
+function autoListen() {
+    setBtns(false, false);
+    setRecBtn('<span class="rec-dot"></span> Listening…');
+
+    startListening(
+        async (transcript) => {
+            noSpeechRetries = 0;
+            setRecBtn("&#9679; Record Answer");
+            setBtns(true, true);
+
+            // Check voice commands first
+            const cmd = _checkVoiceCommand(transcript);
+            if (cmd === "stop" || cmd === "end session") {
+                endSession(); return;
+            }
+            if (cmd === "replay") {
+                busy = false;
+                replayQuestion(); return;
+            }
+
+            busy = true;
+            setStatus("prac-status", "Got it! Analysing your answer…");
+
+            if (mode === "smalltalk") {
+                await handleSmalltalk(transcript, questions[qIndex].question);
+            } else {
+                await handleAnalyze(transcript);
+            }
+        },
+        (err) => {
+            setRecBtn("&#9679; Record Answer");
+            if (err === "no-speech") {
+                noSpeechRetries++;
+                if (noSpeechRetries <= MAX_RETRIES) {
+                    setTimeout(() => {
+                        setRecBtn('<span class="rec-dot"></span> Listening…');
+                        autoListen();
+                    }, 400);
+                } else {
+                    noSpeechRetries = 0;
+                    setStatus("prac-status", "I didn't hear you. Tap Record Answer or say 'replay'.", "error");
+                    speakAndWait("I did not hear you. Please tap Record Answer to try again.", () => setBtns(false, false));
+                }
+                return;
+            }
+            setStatus("prac-status", err, "error");
+            speakAndWait(err, () => {
+                noSpeechRetries = 0; setBtns(false, false);
+                setTimeout(autoListen, 600);
+            });
+        }
+    );
+}
+
+// ═══════════════════════════════════════════════════════
+//  HANDLE MOCK / PRESENTATION
+// ═══════════════════════════════════════════════════════
+async function handleAnalyze(transcript) {
+    const q = questions[qIndex];
+    let result;
+
+    try {
+        const res = await fetch("/api/analyze", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                answer:       transcript,
+                question:     q.question,
+                question_id:  q.id,
+                session_type: mode
+            })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        result = await res.json();
+        if (result.error) throw new Error(result.error);
+    } catch(e) {
+        console.error("[API] analyze:", e);
+        result = { feedback: "Server error — could not analyse. Moving on.", score: 0, tips: [] };
+    }
+
+    const feedback = result.feedback || "Thank you for your answer.";
+    const score    = typeof result.score === "number" ? result.score : 0;
+    const tips     = Array.isArray(result.tips) ? result.tips : [];
+    const tip      = tips.length ? " Tip: " + tips[0] : "";
+
+    const spoken  = feedback + " Your score is " + score + " out of 100." + tip;
+    const display = "You said: \"" + transcript + "\". " + feedback + " Score: " + score + "/100.";
+
+    setStatus("prac-status", display, score >= 55 ? "success" : "error");
+
+    speakAndWait(spoken, () => {
+        qIndex++;
+        busy = false;
+        if (qIndex < questions.length) {
+            speakAndWait("Next question.", () => readQuestion());
+        } else {
+            readQuestion();
+        }
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+//  HANDLE SMALL TALK
+// ═══════════════════════════════════════════════════════
+async function handleSmalltalk(transcript, currentQuestion) {
+    let result;
+
+    try {
+        const res = await fetch("/api/smalltalk", {
+            method:  "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ answer: transcript, question: currentQuestion })
+        });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        result = await res.json();
+    } catch(e) {
+        console.error("[API] smalltalk:", e);
+        result = { comment: "That sounds great!", followup: "What was the best part of that?" };
+    }
+
+    const comment  = result.comment  || "Interesting!";
+    const followup = result.followup || "Tell me more about that.";
+    const display  = "You: \"" + transcript + "\". " + comment + " " + followup;
+
+    setStatus("prac-status", display, "success");
+    document.getElementById("q-text").textContent  = followup;
+    document.getElementById("q-label").textContent = "Follow-up";
+
+    speakAndWait(comment + " " + followup, () => {
+        busy = false;
+        noSpeechRetries = 0;
+        setStatus("prac-status", "Listening… answer the follow-up. Say 'next' to change topic or 'stop' to end.", "listening");
+        setRecBtn('<span class="rec-dot"></span> Listening…');
+        smalltalkListen(followup);
+    });
+}
+
+// ═══════════════════════════════════════════════════════
+//  SMALL TALK LISTEN LOOP
+// ═══════════════════════════════════════════════════════
+function smalltalkListen(currentQ) {
+    setRecBtn('<span class="rec-dot"></span> Listening…');
+    setBtns(false, false);
+
+    startListening(
+        async (transcript) => {
+            noSpeechRetries = 0;
+            setRecBtn("&#9679; Record Answer");
+            setBtns(true, true);
+
+            const cmd = _checkVoiceCommand(transcript);
+            if (cmd === "stop") { endSession(); return; }
+            if (cmd === "next") {
+                qIndex++;
+                busy = false;
+                if (qIndex < questions.length) {
+                    speakAndWait("Okay, moving to the next topic.", () => readQuestion());
+                } else {
+                    readQuestion();
+                }
+                return;
+            }
+            if (cmd === "replay") {
+                busy = false;
+                speakAndWait(currentQ, () => {
+                    noSpeechRetries = 0;
+                    setStatus("prac-status", "Listening…", "listening");
+                    setRecBtn('<span class="rec-dot"></span> Listening…');
+                    smalltalkListen(currentQ);
+                });
+                return;
+            }
+
+            busy = true;
+            setStatus("prac-status", "Thinking…");
+            await handleSmalltalk(transcript, currentQ);
+        },
+        (err) => {
+            setRecBtn("&#9679; Record Answer");
+            if (err === "no-speech") {
+                noSpeechRetries++;
+                if (noSpeechRetries <= MAX_RETRIES) {
+                    setTimeout(() => {
+                        setRecBtn('<span class="rec-dot"></span> Listening…');
+                        smalltalkListen(currentQ);
+                    }, 400);
+                } else {
+                    noSpeechRetries = 0;
+                    setStatus("prac-status", "I didn't hear you. Tap Record Answer. Say 'next' to change topic.", "error");
+                    speakAndWait("I did not hear you. Tap Record Answer to continue.", () => setBtns(false, false));
+                }
+                return;
+            }
+            speakAndWait(err, () => {
+                noSpeechRetries = 0;
+                setTimeout(() => smalltalkListen(currentQ), 600);
+            });
+        }
+    );
+}
+
+// ═══════════════════════════════════════════════════════
+//  END / COMPLETE
+// ═══════════════════════════════════════════════════════
+function endSession() {
+    stopListening();
+    busy = false;
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    speakAndWait("Ending session. Returning to home screen.", announceHome);
+}
+
+function sessionDone() {
+    document.getElementById("prog-bar").style.width = "100%";
+    setBtns(true, true);
+    setStatus("prac-status", "Session complete! Well done.", "success");
+    speakAndWait(
+        "Congratulations! You have completed all questions. Excellent work! Returning to home.",
+        () => { busy = false; announceHome(); }
+    );
+}
+window.addEventListener("load", () => {
+    setTimeout(() => {
+        _unlockAndStart();
+    }, 300);
+});
+document.getElementById("backBtn").onclick = () => {
+  window.location.href = "/categories.html";
+};
+</script>
+</body>
+</html>
