@@ -91,11 +91,12 @@ function startListening(onResult, onError) {
     _cbResult = onResult; _cbError = onError;
     _finalText = ""; _listening = true;
 
-    _rec = new SR();
-    _rec.lang = "en-US";
-    _rec.continuous = true;        // FIX A: capture full sentences
-    _rec.interimResults = true;    // FIX B: accumulate as user talks
-    _rec.maxAlternatives = 1;
+_rec = new SR();
+_rec.lang = "en-US";
+const _isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+_rec.continuous = !_isMobile;
+_rec.interimResults = !_isMobile;
+_rec.maxAlternatives = 1;
 
     _rec.onresult = (e) => {
         let chunk = "";
