@@ -378,6 +378,7 @@ function renderStory(){
 }
 
 // ── SELECT THEME ─────────────────────
+// REPLACE selectTheme function
 function selectTheme(theme){
   selectedTheme = theme
 
@@ -386,7 +387,9 @@ function selectTheme(theme){
 
   document.getElementById("startBtn").style.display = "inline-block"
 
-  speak(theme + " selected. Click start story or say start.")
+  speak(theme + " selected. Say start to begin or click the start button.", ()=>{
+    listenForStart()   // 🔥 listen for "start" after selection
+  })
 }
 
 // ── START STORY ──────────────────────
@@ -683,6 +686,34 @@ function listenThemeSelect(){
 
   recognition.onend = function(){
     if(!selectedTheme) setTimeout(listenThemeSelect, 500)
+  }
+
+  recognition.start()
+}
+function listenForStart(){
+  if(!SpeechRec) return
+  stopMic()
+
+  recognition = new SpeechRec()
+  recognition.lang = "en-US"
+  recognition.continuous = false
+  recognition.interimResults = false
+
+  recognition.onresult = function(e){
+    let text = e.results[0][0].transcript.toLowerCase()
+    console.log("Heard after select:", text)
+
+    if(text.includes("start") || text.includes("begin") || text.includes("go")){
+      beginStory()
+    } else {
+      listenForStart()  // retry
+    }
+  }
+
+  recognition.onend = function(){
+    if(selectedTheme && document.getElementById("gameScreen").style.display === "none"){
+      setTimeout(listenForStart, 500)
+    }
   }
 
   recognition.start()
