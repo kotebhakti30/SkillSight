@@ -158,28 +158,26 @@ function announceHome() {
     });
 }
 
+// REPLACE listenForMode function
 function listenForMode() {
     if (mode) return;
     setStatus("home-status", "Listening for your choice…", "listening");
     startListening(
         (text) => {
             const t = text.toLowerCase();
-            console.log("User said:", speech);
+            console.log("User said:", t);
 
-  // 🔥 GLOBAL LOGOUT (ADD THIS ALWAYS FIRST)
-  if (
-    speech.includes("logout") ||
-    speech.includes("log out") ||
-    speech.includes("sign out")
-  ) {
-    speakAndWait("Logging you out", logoutUser);
-    return;
-  }
+            if (t.includes("logout") || t.includes("log out") || t.includes("sign out")) {
+                speakAndWait("Logging you out", logoutUser);
+                return;
+            }
+            if (t.includes("back") || t.includes("go back") || t.includes("exit")) {
+                window.location.href = "/categories.html";
+                return;
+            }
             if      (t.includes("mock") || t.includes("interview")) pickMode("mock");
             else if (t.includes("small") || t.includes("talk"))     pickMode("smalltalk");
             else if (t.includes("present"))                          pickMode("presentation");
-            else if (t.includes("back") || t.includes("go back") || t.includes("exit")) { window.location.href = "/categories.html";  // 🔥 FIXED
-        }
             else {
                 speakAndWait(
                     "Sorry, I didn't catch that. Say: Mock Interviews, Small Talk, or Presentation.",
