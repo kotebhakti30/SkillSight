@@ -428,13 +428,20 @@ function askBlank(){
     return
   }
 
-  let prompt = currentStory.blanks[blankIndex].prompt
+  let blank = currentStory.blanks[blankIndex]
+  let prompt = blank.slot.replace(/[\[\]]/g, "")  // converts [ADJECTIVE] → ADJECTIVE
 
-  speak(prompt, ()=>{
-    setTimeout(()=>{
+  speechSynthesis.cancel()
+  stopMic()
+
+  let u = new SpeechSynthesisUtterance("Say a " + prompt)
+  u.lang = "en-US"
+  u.onend = () => {
+    setTimeout(() => {
       startListening()
-    }, 1500)
-  })
+    }, 1000)
+  }
+  speechSynthesis.speak(u)
 }
 
 // ── LISTEN ──────────────────────────
