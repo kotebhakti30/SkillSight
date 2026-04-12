@@ -210,7 +210,7 @@ h1{font-family:'Playfair Display',serif;font-size:52px;font-weight:800;color:#c0
 
 <div class="wrap">
   <header>
-    <a href="backend/templates/fun.html" class="logo-back">← Home</a>
+    <a href="/fun" class="logo-back">← Home</a>
     <h1>📖 Fill the Story</h1>
     <div class="subtitle">Mad Libs Voice Adventure</div>
   </header>
@@ -358,28 +358,21 @@ function setStatus(msg){
 // ── RENDER STORY ─────────────────────
 function renderStory(){
   let template = currentStory.template
-  let wordsIndex = 0
 
-  currentStory.blanks.forEach((b,i)=>{
-
+  currentStory.blanks.forEach((b, i) => {
     let value
 
     if(i < filledWords.length){
       value = `<span class="filled-word">${filledWords[i]}</span>`
-    }
-    else if(i === filledWords.length){
+    } else if(i === filledWords.length){
       value = `<span class="blank">???</span>`
-    }
-    else{
+    } else {
       value = `<span class="blank">___</span>`
     }
 
-    // 🔥 replace ONLY first occurrence each time (correct mapping)
+    // Replace only the FIRST occurrence of the slot
     template = template.replace(b.slot, value)
   })
-
-  // 🔥 SAFETY: remove any leftover brackets like [NAME]
-  template = template.replace(/\[[^\]]+\]/g, "___")
 
   document.getElementById("storyText").innerHTML = template
 }
@@ -640,7 +633,7 @@ function stopGame(){
   speechSynthesis.cancel()
 
   speak("Going back to dashboard", ()=>{
-    window.location = "backend/templates/fun.html"
+    window.location = "/fun"
   })
 }
 
@@ -650,18 +643,50 @@ function triggerStop(){
 }
 
 // ── INIT ────────────────────────────
+// REPLACE entire bottom section
 window.onload = function(){
   fetch("/api/game-data/storytelling")
     .then(res => res.json())
     .then(data=>{
       stories = data
+      setTimeout(()=>{
+        speak("Welcome to Fill the Story. Say jungle, space, school, or kingdom to choose a theme. Then say start to begin.", ()=>{
+          listenThemeSelect()
+        })
+      }, 800)
     })
 }
 document.addEventListener("click", function startOnce(){
   document.removeEventListener("click", startOnce)
-  speak("Welcome to fill the story. Choose a theme and click start.")
+speak("Welcome to Fill the Story. Say jungle, space, school, or kingdom to choose a theme. Then say start to begin.")
 }, { once: true })
 
+function listenThemeSelect(){
+  if(!SpeechRec || selectedTheme) return
+  stopMic()
+
+  recognition = new SpeechRec()
+  recognition.lang = "en-US"
+  recognition.continuous = false
+  recognition.interimResults = false
+
+  recognition.onresult = function(e){
+    let text = e.results[0][0].transcript.toLowerCase()
+
+    if(text.includes("jungle"))       selectTheme("jungle")
+    else if(text.includes("space"))   selectTheme("space")
+    else if(text.includes("school"))  selectTheme("school")
+    else if(text.includes("kingdom")) selectTheme("kingdom")
+    else if(text.includes("start"))   beginStory()
+    else listenThemeSelect()
+  }
+
+  recognition.onend = function(){
+    if(!selectedTheme) setTimeout(listenThemeSelect, 500)
+  }
+
+  recognition.start()
+}
 </script>
 </body>
 </html>
