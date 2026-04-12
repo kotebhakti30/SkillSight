@@ -191,9 +191,9 @@ def get_sessions():
     cursor = db.cursor(dictionary=True)
 
     cursor.execute(
-        "SELECT correct, total, results FROM sessions WHERE user_id=%s ORDER BY id DESC",
-        (user_id,)
-    )
+    "SELECT correct, total, results FROM sessions WHERE user_id=%s AND module='pronunciation' ORDER BY id DESC",
+    (user_id,)
+)
 
     sessions = cursor.fetchall()
 
