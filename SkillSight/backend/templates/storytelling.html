@@ -352,7 +352,13 @@ function setMicState(state){
 }
 
 function setStatus(msg){
-  document.getElementById("micStatus").innerText = msg
+  let el = document.getElementById("micStatus")
+  if(el) el.innerText = msg
+
+  let startEl = document.getElementById("startMicStatus")
+  if(startEl && document.getElementById("startScreen").style.display !== "none"){
+    startEl.innerText = msg
+  }
 }
 
 // ── RENDER STORY ─────────────────────
@@ -659,11 +665,6 @@ window.onload = function(){
       }, 800)
     })
 }
-document.addEventListener("click", function startOnce(){
-  document.removeEventListener("click", startOnce)
-speak("Welcome to Fill the Story. Say jungle, space, school, or kingdom to choose a theme. Then say start to begin.")
-}, { once: true })
-
 function listenThemeSelect(){
   if(!SpeechRec || selectedTheme) return
   stopMic()
