@@ -49,24 +49,20 @@
 <script>
 // ═══════════════════════════════════════════════════════
 //  AUDIO CONTEXT UNLOCK
-//  Tap anywhere on the page → unlocks TTS on mobile/Chrome
 // ═══════════════════════════════════════════════════════
 let _appStarted = false;
 
 function _unlockAndStart(e) {
     if (_appStarted) return;
-    // Only fire on direct user interaction
     _appStarted = true;
     document.removeEventListener("click", _unlockAndStart);
     document.removeEventListener("touchend", _unlockAndStart);
 
-    // Prime AudioContext
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         ctx.resume();
     } catch(e) {}
 
-    // Prime voices
     if (window.speechSynthesis) window.speechSynthesis.getVoices();
 
     if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
@@ -75,14 +71,9 @@ function _unlockAndStart(e) {
         return;
     }
 
-    // If they already clicked a mode button, pickMode handled it
-    // Otherwise announce home
-    if (!mode) {
-        announceHome();
-    }
+    if (!mode) announceHome();
 }
 
-// Listen for ANY tap/click to unlock
 document.addEventListener("click",    _unlockAndStart);
 document.addEventListener("touchend", _unlockAndStart);
 
@@ -95,6 +86,7 @@ let qIndex    = 0;
 let busy      = false;
 let noSpeechRetries = 0;
 const MAX_RETRIES   = 3;
+let _isCapturing = false;  // 🔥 renamed — career.js already has isListening() function
 
 // ═══════════════════════════════════════════════════════
 //  UTILITIES
@@ -126,16 +118,14 @@ function setRecBtn(html) {
 let isHomeAnnounced = false;
 
 function announceHome() {
-    document.getElementById("backBtn").style.display = "inline-block"
-    // Prevent duplicate execution
+    document.getElementById("backBtn").style.display = "inline-block";
     if (isHomeAnnounced) return;
     isHomeAnnounced = true;
 
     stopListening();
+    _isCapturing = false;
 
-    if (window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-    }
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     show("screen-home");
 
@@ -153,12 +143,11 @@ function announceHome() {
     setStatus("home-status", "Say: Mock Interviews, Small Talk, or Presentation.");
 
     speakAndWait(msg, () => {
-        isHomeAnnounced = false; // reset after speaking
+        isHomeAnnounced = false;
         listenForMode();
     });
 }
 
-// REPLACE listenForMode function
 function listenForMode() {
     if (mode) return;
     setStatus("home-status", "Listening for your choice…", "listening");
@@ -194,12 +183,10 @@ function listenForMode() {
 }
 
 // ═══════════════════════════════════════════════════════
-//  PICK MODE — called by button OR voice
+//  PICK MODE
 // ═══════════════════════════════════════════════════════
 function pickMode(m) {
-    // If app not started yet (user tapped a mode button directly),
-    // mark as started and proceed
-    document.getElementById("backBtn").style.display = "none"
+    document.getElementById("backBtn").style.display = "none";
     if (!_appStarted) {
         _appStarted = true;
         document.removeEventListener("click",    _unlockAndStart);
@@ -215,6 +202,7 @@ function pickMode(m) {
     busy = true;
     mode = m;
     stopListening();
+    _isCapturing = false;
     if (window.speechSynthesis) window.speechSynthesis.cancel();
 
     const titles = { mock:"Mock Interviews", smalltalk:"Professional Small Talk", presentation:"Presentation Practice" };
@@ -246,7 +234,7 @@ function pickMode(m) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  READ QUESTION → AUTO LISTEN
+//  READ QUESTION
 // ═══════════════════════════════════════════════════════
 function readQuestion() {
     if (qIndex >= questions.length) { sessionDone(); return; }
@@ -261,6 +249,7 @@ function readQuestion() {
     setBtns(false, false);
     setRecBtn("&#9679; Record Answer");
     noSpeechRetries = 0;
+    _isCapturing = false;
     setStatus("prac-status", "Reading question…");
 
     speakAndWait(q.question, () => {
@@ -276,6 +265,7 @@ function replayQuestion() {
     if (!q) return;
     busy = true;
     stopListening();
+    _isCapturing = false;
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     setBtns(true, true);
     setRecBtn("&#9679; Record Answer");
@@ -293,6 +283,7 @@ function replayQuestion() {
 function manualRecord() {
     if (busy) return;
     stopListening();
+    _isCapturing = false;
     noSpeechRetries = 0;
     setStatus("prac-status", "Listening… speak your answer now.", "listening");
     setRecBtn('<span class="rec-dot"></span> Listening…');
@@ -301,7 +292,6 @@ function manualRecord() {
 
 // ═══════════════════════════════════════════════════════
 //  VOICE COMMAND CHECKER
-//  Returns command string or null
 // ═══════════════════════════════════════════════════════
 function _checkVoiceCommand(text) {
     const t = text.toLowerCase().trim();
@@ -319,27 +309,25 @@ function _checkVoiceCommand(text) {
 }
 
 // ═══════════════════════════════════════════════════════
-//  AUTO LISTEN — core loop for mock/presentation
+//  AUTO LISTEN
 // ═══════════════════════════════════════════════════════
 function autoListen() {
+    if (_isCapturing) return;
+    _isCapturing = true;
+
     setBtns(false, false);
     setRecBtn('<span class="rec-dot"></span> Listening…');
 
     startListening(
         async (transcript) => {
+            _isCapturing = false;
             noSpeechRetries = 0;
             setRecBtn("&#9679; Record Answer");
             setBtns(true, true);
 
-            // Check voice commands first
             const cmd = _checkVoiceCommand(transcript);
-            if (cmd === "stop" || cmd === "end session") {
-                endSession(); return;
-            }
-            if (cmd === "replay") {
-                busy = false;
-                replayQuestion(); return;
-            }
+            if (cmd === "stop" || cmd === "end session") { endSession(); return; }
+            if (cmd === "replay") { busy = false; replayQuestion(); return; }
 
             busy = true;
             setStatus("prac-status", "Got it! Analysing your answer…");
@@ -351,6 +339,7 @@ function autoListen() {
             }
         },
         (err) => {
+            _isCapturing = false;
             setRecBtn("&#9679; Record Answer");
             if (err === "no-speech") {
                 noSpeechRetries++;
@@ -452,6 +441,7 @@ async function handleSmalltalk(transcript, currentQuestion) {
     speakAndWait(comment + " " + followup, () => {
         busy = false;
         noSpeechRetries = 0;
+        _isCapturing = false;
         setStatus("prac-status", "Listening… answer the follow-up. Say 'next' to change topic or 'stop' to end.", "listening");
         setRecBtn('<span class="rec-dot"></span> Listening…');
         smalltalkListen(followup);
@@ -462,11 +452,15 @@ async function handleSmalltalk(transcript, currentQuestion) {
 //  SMALL TALK LISTEN LOOP
 // ═══════════════════════════════════════════════════════
 function smalltalkListen(currentQ) {
+    if (_isCapturing) return;
+    _isCapturing = true;
+
     setRecBtn('<span class="rec-dot"></span> Listening…');
     setBtns(false, false);
 
     startListening(
         async (transcript) => {
+            _isCapturing = false;
             noSpeechRetries = 0;
             setRecBtn("&#9679; Record Answer");
             setBtns(true, true);
@@ -474,19 +468,17 @@ function smalltalkListen(currentQ) {
             const cmd = _checkVoiceCommand(transcript);
             if (cmd === "stop") { endSession(); return; }
             if (cmd === "next") {
-                qIndex++;
-                busy = false;
+                qIndex++; busy = false;
                 if (qIndex < questions.length) {
                     speakAndWait("Okay, moving to the next topic.", () => readQuestion());
-                } else {
-                    readQuestion();
-                }
+                } else { readQuestion(); }
                 return;
             }
             if (cmd === "replay") {
                 busy = false;
                 speakAndWait(currentQ, () => {
                     noSpeechRetries = 0;
+                    _isCapturing = false;
                     setStatus("prac-status", "Listening…", "listening");
                     setRecBtn('<span class="rec-dot"></span> Listening…');
                     smalltalkListen(currentQ);
@@ -499,6 +491,7 @@ function smalltalkListen(currentQ) {
             await handleSmalltalk(transcript, currentQ);
         },
         (err) => {
+            _isCapturing = false;
             setRecBtn("&#9679; Record Answer");
             if (err === "no-speech") {
                 noSpeechRetries++;
@@ -509,7 +502,7 @@ function smalltalkListen(currentQ) {
                     }, 400);
                 } else {
                     noSpeechRetries = 0;
-                    setStatus("prac-status", "I didn't hear you. Tap Record Answer. Say 'next' to change topic.", "error");
+                    setStatus("prac-status", "I didn't hear you. Tap Record Answer.", "error");
                     speakAndWait("I did not hear you. Tap Record Answer to continue.", () => setBtns(false, false));
                 }
                 return;
@@ -527,6 +520,7 @@ function smalltalkListen(currentQ) {
 // ═══════════════════════════════════════════════════════
 function endSession() {
     stopListening();
+    _isCapturing = false;
     busy = false;
     if (window.speechSynthesis) window.speechSynthesis.cancel();
     speakAndWait("Ending session. Returning to home screen.", announceHome);
@@ -541,13 +535,13 @@ function sessionDone() {
         () => { busy = false; announceHome(); }
     );
 }
+
 window.addEventListener("load", () => {
-    setTimeout(() => {
-        _unlockAndStart();
-    }, 300);
+    setTimeout(() => { _unlockAndStart(); }, 300);
 });
+
 document.getElementById("backBtn").onclick = () => {
-  window.location.href = "/categories.html";
+    window.location.href = "/categories.html";
 };
 </script>
 </body>
