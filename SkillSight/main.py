@@ -220,16 +220,17 @@ def dashboard():
 
     # total games
     cursor.execute(
-        "SELECT COUNT(*) as games FROM sessions WHERE user_id=%s",
-        (user_id,)
-    )
+    "SELECT COUNT(*) as games FROM sessions WHERE user_id=%s AND module='fun'",
+    (user_id,)
+)
     games = cursor.fetchone()["games"]
 
     # total score
     cursor.execute(
-        "SELECT SUM(correct) as score FROM sessions WHERE user_id=%s",
-        (user_id,)
-    )
+    "SELECT SUM(correct) as score FROM sessions WHERE user_id=%s AND module='fun'",
+    (user_id,)
+)
+
     result = cursor.fetchone()
     score = result["score"] if result["score"] else 0
 
