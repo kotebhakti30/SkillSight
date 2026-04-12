@@ -429,7 +429,7 @@ function askBlank(){
   }
 
   let blank = currentStory.blanks[blankIndex]
-  let prompt = blank.slot.replace(/[\[\]]/g, "")  // converts [ADJECTIVE] → ADJECTIVE
+  let prompt = blank.slot.replace(/[\[\]]/g, "").replace(/_/g, " ").toLowerCase()  // converts [ADJECTIVE] → ADJECTIVE
 
   speechSynthesis.cancel()
   stopMic()
