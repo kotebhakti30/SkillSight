@@ -219,10 +219,58 @@ h1.hero-title{
 .stat-label{font-size:12px;color:var(--muted);margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
 @media(max-width:640px){
-  .logo{font-size:38px;}
-  .dashboard{flex-direction:column;text-align:center;}
-  .stats{justify-content:center;}
-  .hero{padding:28px 0 24px 0;}
+  .logo{font-size:32px;}
+  
+  header{padding:28px 0 0 0;}
+  
+  .hero{padding:20px 0 16px 0;}
+  
+  h1.hero-title{font-size:32px;}
+  
+  .games{
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  
+  .card{padding:16px 12px 14px 12px;}
+  
+  .card h3{font-size:15px;}
+  
+  .card p{font-size:12px;}
+  
+  .dashboard{
+    flex-direction:column;
+    text-align:center;
+    padding:20px 16px;
+  }
+  
+  .stats{justify-content:center;gap:32px;}
+  
+  .stat-num{font-size:30px;}
+  
+  button[onclick="goBack()"]{
+    top:12px !important;
+    left:12px !important;
+    padding:8px 12px !important;
+    font-size:13px !important;
+  }
+  
+  .logout-btn{
+    top:12px !important;
+    right:12px !important;
+    padding:6px 12px !important;
+    font-size:13px !important;
+  }
+  
+  .mic-area{margin:28px 0 12px 0;}
+  
+  .mic-outer{width:88px;height:88px;}
+  
+  .mic-btn{font-size:30px;}
+}
+
+@media(max-width:380px){
+  .games{grid-template-columns:1fr;}
 }
 .logout-btn {
   position: fixed;
