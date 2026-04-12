@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fill the Story</title>
-<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/sk_final/static/fun.css">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;}
@@ -432,7 +432,9 @@ function askBlank(){
   let prompt = currentStory.blanks[blankIndex].prompt
 
   speak(prompt, ()=>{
-    startListening()
+    setTimeout(()=>{
+      startListening()
+    }, 800)  // wait 800ms after speaking before listening
   })
 }
 
@@ -505,7 +507,7 @@ function acceptWord(word){
 
   renderStory()
 
-  setTimeout(askBlank, 400)
+  setTimeout(askBlank, 1000)
 }
 
 // ── FINISH STORY ────────────────────
