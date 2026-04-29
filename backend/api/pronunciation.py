@@ -1,14 +1,19 @@
 import mysql.connector
-from flask import Blueprint, jsonify,request
+from flask import Blueprint, jsonify, request
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 pronunciation_bp = Blueprint('pronunciation', __name__)
 
 def get_db_connection():
     return mysql.connector.connect(
-        host="localhost",
-        user="root",          # change if needed
-        password="root",      # change if needed
-        database="skillsight"
+        host=os.environ.get("DB_HOST"),
+        port=int(os.environ.get("DB_PORT", 3306)),
+        user=os.environ.get("DB_USER"),
+        password=os.environ.get("DB_PASSWORD"),
+        database=os.environ.get("DB_NAME")
     )
 
 
