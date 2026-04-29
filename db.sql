@@ -3,6 +3,7 @@ CREATE TABLE users (
   name VARCHAR(100),
   email VARCHAR(100),
   password VARCHAR(255),
+  password_hash VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -195,6 +196,8 @@ CREATE TABLE questions (
   question TEXT
 );
 INSERT INTO questions (id, type, question) VALUES
+
+
 (1,'mock','Tell me about yourself and your professional background.'),
 (2,'mock','What are your three greatest strengths and why?'),
 (3,'mock','What is your biggest weakness and what are you doing to improve it?'),
@@ -220,8 +223,6 @@ INSERT INTO questions (id, type, question) VALUES
 (23,'mock','How do you manage your time and stay organised during a busy week?'),
 (24,'mock','Give an example of when you had to make a difficult decision at work.'),
 (25,'mock','Tell me about a time you disagreed with your manager and how you handled it.'),
-
--- 🔹 SMALL TALK (51–75)
 (51,'smalltalk','How has your week been going so far?'),
 (52,'smalltalk','Did you have a good weekend? What did you get up to?'),
 (53,'smalltalk','Have you been working on any interesting projects lately?'),
@@ -247,8 +248,6 @@ INSERT INTO questions (id, type, question) VALUES
 (73,'smalltalk','What is your favorite movie or show?'),
 (74,'smalltalk','Do you prefer coffee or tea?'),
 (75,'smalltalk','What makes a good day for you?'),
-
--- 🔹 PRESENTATION (101–125)
 (101,'presentation','Give a 60-second introduction of yourself to a hiring manager.'),
 (102,'presentation','Present your greatest professional achievement in two minutes.'),
 (103,'presentation','Pitch a new product idea to investors.'),
