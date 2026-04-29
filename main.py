@@ -7,10 +7,6 @@ import hashlib
 import mysql.connector
 import random
 import json
-from dotenv import load_dotenv
-import psycopg2
-
-load_dotenv()
 
 from voice_assist_v2.backendcareer.routes.api import api_bp
 
@@ -23,13 +19,14 @@ app = Flask(
 
 CORS(app)
 
+# ---------- DATABASE ----------
+
 def get_db():
     return mysql.connector.connect(
-        host=os.environ.get("DB_HOST"),
-        port=int(os.environ.get("DB_PORT", 3306)),
-        user=os.environ.get("DB_USER"),
-        password=os.environ.get("DB_PASSWORD"),
-        database=os.environ.get("DB_NAME")
+        host="localhost",
+        user="root",
+        password="root",
+        database="skillsight"
     )
 
 # ---------- ROUTES ----------
@@ -192,9 +189,9 @@ def get_sessions():
     cursor = db.cursor(dictionary=True)
 
     cursor.execute(
-    "SELECT correct, total, results FROM sessions WHERE user_id=%s AND module='pronunciation' ORDER BY id DESC",
-    (user_id,)
-)
+        "SELECT correct, total, results FROM sessions WHERE user_id=%s ORDER BY id DESC",
+        (user_id,)
+    )
 
     sessions = cursor.fetchall()
 
@@ -221,17 +218,16 @@ def dashboard():
 
     # total games
     cursor.execute(
-    "SELECT COUNT(*) as games FROM sessions WHERE user_id=%s AND module='fun'",
-    (user_id,)
-)
+        "SELECT COUNT(*) as games FROM sessions WHERE user_id=%s",
+        (user_id,)
+    )
     games = cursor.fetchone()["games"]
 
     # total score
     cursor.execute(
-    "SELECT SUM(correct) as score FROM sessions WHERE user_id=%s AND module='fun'",
-    (user_id,)
-)
-
+        "SELECT SUM(correct) as score FROM sessions WHERE user_id=%s",
+        (user_id,)
+    )
     result = cursor.fetchone()
     score = result["score"] if result["score"] else 0
 

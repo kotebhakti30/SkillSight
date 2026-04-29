@@ -454,16 +454,10 @@ window.onload = () => {
       });
     }, 500);
   } else {
-    // Wait for ANY user interaction before starting voice
-    document.addEventListener("click", function startOnce() {
-      document.removeEventListener("click", startOnce);
+    // ✅ ONLY NORMAL ENTRY POINT
+    setTimeout(() => {
       initVoice();
-    }, { once: true });
-
-    document.addEventListener("keydown", function startOnce() {
-      document.removeEventListener("keydown", startOnce);
-      initVoice();
-    }, { once: true });
+    }, 500);
   }
 };
 
