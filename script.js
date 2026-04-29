@@ -206,7 +206,16 @@ password:value("password")
 
 })
 
-.then(r=>r.json())
+.then(async (r) => {
+  const text = await r.text();
+
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    console.error("Invalid JSON:", text);
+    throw new Error("Server error");
+  }
+})
 
 .then(data=>{
 
