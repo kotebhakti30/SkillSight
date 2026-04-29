@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkillSight — Fun & Learning Zone</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../sk_final/static/sounds/fun.css">
+<style>
+:root{
+  --blue:      #2b5ed7;
+  --blue-dark: #1a3fb3;
+  --blue-soft: #eaf2ff;
+  --white:     #ffffff;
+  --bg:        #f4f7ff;
+  --text:      #1e2a4a;
+  --muted:     #6b7a99;
+  --border:    rgba(43,94,215,0.12);
+  --shadow:    0 8px 32px rgba(43,94,215,0.10);
+  --shadow-lg: 0 20px 60px rgba(43,94,215,0.16);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  font-family:'Nunito',sans-serif;
+  background:var(--bg);color:var(--text);
+  min-height:100vh;overflow-x:hidden;
+}
+.bg-decor{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden;}
+.bg-circle{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(43,94,215,0.07),transparent 70%);}
+.bc1{width:600px;height:600px;top:-200px;right:-150px;animation:drift 12s ease-in-out infinite;}
+.bc2{width:400px;height:400px;bottom:-100px;left:-100px;animation:drift 10s 3s ease-in-out infinite reverse;}
+.bc3{width:300px;height:300px;top:40%;left:30%;animation:drift 14s 6s ease-in-out infinite;}
+@keyframes drift{0%,100%{transform:translate(0,0);}50%{transform:translate(20px,-20px);}}
+.wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 20px;}
+header{padding:48px 0 0 0;text-align:center;animation:slideDown 0.6s ease both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+.logo{font-family:'Playfair Display',serif;font-size:52px;font-weight:800;color:var(--blue-dark);letter-spacing:-1px;display:inline-block;}
+.hero{padding:40px 0 36px 0;text-align:center;}
+h1.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(38px,5.5vw,68px);font-weight:800;
+  line-height:1.08;letter-spacing:-1.5px;color:var(--text);
+  animation:fadeUp 0.6s 0.1s ease both;
+}
+.hero-title .accent{
+  background:linear-gradient(135deg,var(--blue) 0%,#6366f1 100%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.mic-area{
+  display:flex;flex-direction:column;align-items:center;
+  gap:18px;margin:44px 0 18px 0;
+  animation:fadeUp 0.6s 0.2s ease both;
+}
+.mic-outer{position:relative;width:110px;height:110px;cursor:pointer;}
+.mic-wave{
+  position:absolute;inset:0;border-radius:50%;
+  border:2px solid rgba(43,94,215,0.25);
+  animation:wavePulse 2.4s ease-out infinite;
+}
+.mic-wave:nth-child(2){animation-delay:0.8s;}
+.mic-wave:nth-child(3){animation-delay:1.6s;}
+@keyframes wavePulse{0%{transform:scale(1);opacity:0.8;}100%{transform:scale(2.1);opacity:0;}}
+.mic-outer.speaking .mic-wave{border-color:rgba(99,102,241,0.5);animation:speakPulse 0.6s ease-out infinite;}
+.mic-outer.speaking .mic-wave:nth-child(2){animation-delay:0.2s;}
+.mic-outer.speaking .mic-wave:nth-child(3){animation-delay:0.4s;}
+@keyframes speakPulse{0%{transform:scale(1);opacity:1;}100%{transform:scale(2.4);opacity:0;}}
+.mic-btn{
+  position:absolute;inset:0;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue-dark));
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:38px;
+  box-shadow:0 8px 32px rgba(43,94,215,0.35);
+  transition:transform 0.2s,box-shadow 0.2s;z-index:2;
+}
+.mic-btn:hover{transform:scale(1.08);box-shadow:0 16px 48px rgba(43,94,215,0.45);}
+.mic-outer.listening .mic-btn{animation:listenGlow 1.4s ease-in-out infinite;}
+@keyframes listenGlow{
+  0%,100%{box-shadow:0 8px 32px rgba(43,94,215,0.35);}
+  50%{box-shadow:0 8px 56px rgba(43,94,215,0.65),0 0 0 5px rgba(43,94,215,0.12);}
+}
+.mic-outer.speaking .mic-btn{
+  animation:speakBounce 0.5s ease-in-out infinite alternate;
+  background:linear-gradient(135deg,#6366f1,#4f46e5);
+}
+@keyframes speakBounce{
+  0%{transform:scale(1) translateY(0);box-shadow:0 8px 32px rgba(99,102,241,0.4);}
+  100%{transform:scale(1.1) translateY(-5px);box-shadow:0 20px 56px rgba(99,102,241,0.6);}
+}
+
+/* tap to start label */
+#tapLabel{
+  font-size:15px;color:var(--blue);font-weight:700;
+  background:var(--blue-soft);border:1.5px solid rgba(43,94,215,0.2);
+  padding:8px 20px;border-radius:20px;
+  animation:tapBlink 1.5s ease-in-out infinite;
+}
+@keyframes tapBlink{0%,100%{opacity:1;}50%{opacity:0.5;}}
+
+#waveBar{display:flex;align-items:center;justify-content:center;gap:4px;height:32px;opacity:0;transition:opacity 0.3s;margin-top:-8px;}
+#waveBar.active{opacity:1;}
+#waveBar span{display:inline-block;width:5px;border-radius:3px;background:var(--blue);height:6px;}
+#waveBar.active span:nth-child(1){animation:barAnim 0.5s 0.00s infinite ease-in-out;}
+#waveBar.active span:nth-child(2){animation:barAnim 0.5s 0.08s infinite ease-in-out;}
+#waveBar.active span:nth-child(3){animation:barAnim 0.5s 0.16s infinite ease-in-out;}
+#waveBar.active span:nth-child(4){animation:barAnim 0.5s 0.24s infinite ease-in-out;}
+#waveBar.active span:nth-child(5){animation:barAnim 0.5s 0.32s infinite ease-in-out;}
+#waveBar.active span:nth-child(6){animation:barAnim 0.5s 0.24s infinite ease-in-out;}
+#waveBar.active span:nth-child(7){animation:barAnim 0.5s 0.16s infinite ease-in-out;}
+#waveBar.active span:nth-child(8){animation:barAnim 0.5s 0.08s infinite ease-in-out;}
+@keyframes barAnim{0%,100%{height:5px;}50%{height:28px;}}
+
+#voiceStatus{
+  font-size:15px;font-weight:600;color:var(--muted);
+  background:var(--white);border:1.5px solid var(--border);
+  padding:10px 24px;border-radius:24px;
+  box-shadow:0 2px 8px rgba(43,94,215,0.06);
+  transition:all 0.3s;min-width:280px;text-align:center;
+  display:none;
+}
+#voiceStatus.listening{color:var(--blue);border-color:rgba(43,94,215,0.35);background:var(--blue-soft);}
+#voiceStatus.speaking{color:#4f46e5;border-color:rgba(99,102,241,0.3);background:#f0f0ff;}
+#voiceStatus.heard{color:#059669;border-color:rgba(5,150,105,0.3);background:#f0fdf4;}
+
+.divider{display:flex;align-items:center;gap:16px;margin-bottom:28px;animation:fadeUp 0.6s 0.3s ease both;}
+.divider-line{flex:1;height:1.5px;background:var(--border);}
+.divider-text{font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+
+/* ── LARGER CARDS ── */
+.games{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:16px;margin-bottom:40px;
+}
+.card{
+  position:relative;background:var(--white);
+  border:1.5px solid var(--border);border-radius:24px;
+  padding:22px 16px 20px 16px;
+  text-decoration:none;color:var(--text);overflow:hidden;
+  transition:transform 0.28s cubic-bezier(0.34,1.56,0.64,1),box-shadow 0.28s ease,border-color 0.28s ease;
+  animation:fadeUp 0.5s ease both;cursor:pointer;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:var(--card-accent,var(--blue));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform 0.3s ease;border-radius:24px 24px 0 0;
+}
+.card:hover::before{transform:scaleX(1);}
+.card:hover{transform:translateY(-10px) scale(1.01);box-shadow:var(--shadow-lg);border-color:rgba(43,94,215,0.25);}
+.card.voice-highlight{
+  border-color:var(--blue) !important;
+  box-shadow:0 0 0 3px rgba(43,94,215,0.18),var(--shadow-lg) !important;
+  transform:translateY(-10px) scale(1.02) !important;
+}
+.card.voice-highlight::before{transform:scaleX(1);}
+.card:nth-child(1){animation-delay:0.05s;--card-accent:#2b5ed7;}
+.card:nth-child(2){animation-delay:0.12s;--card-accent:#059669;}
+.card:nth-child(3){animation-delay:0.19s;--card-accent:#7c3aed;}
+.card:nth-child(4){animation-delay:0.26s;--card-accent:#d97706;}
+.card-icon-wrap{
+  width:52px;height:52px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin-bottom:12px;
+  transition:transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.card:hover .card-icon-wrap,.card.voice-highlight .card-icon-wrap{transform:scale(1.15) rotate(-4deg);}
+.card:nth-child(1) .card-icon-wrap{background:#eaf2ff;}
+.card:nth-child(2) .card-icon-wrap{background:#d1fae5;}
+.card:nth-child(3) .card-icon-wrap{background:#ede9fe;}
+.card:nth-child(4) .card-icon-wrap{background:#fef3c7;}
+.card h3{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;margin-bottom:6px;color:var(--text);transition:color 0.2s;}
+.card:hover h3,.card.voice-highlight h3{color:var(--blue-dark);}
+.card p{font-size:13px;color:var(--muted);line-height:1.5;font-weight:500;margin-bottom:12px;}
+.voice-chip{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:700;padding:6px 14px;border-radius:20px;
+  background:var(--blue-soft);color:var(--blue);
+  border:1px solid rgba(43,94,215,0.15);
+  transition:background 0.2s,transform 0.2s;
+}
+.card:hover .voice-chip,.card.voice-highlight .voice-chip{background:var(--blue);color:white;transform:translateX(3px);}
+.voice-chip::before{content:'🎤';font-size:12px;}
+.card-arrow{
+  position:absolute;top:30px;right:30px;width:38px;height:38px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:17px;
+  background:var(--blue-soft);color:var(--blue);
+  opacity:0;transform:scale(0.7);
+  transition:opacity 0.25s,transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+}
+.card:hover .card-arrow,.card.voice-highlight .card-arrow{opacity:1;transform:scale(1);}
+.card::after{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.6),transparent);
+  transition:left 0.5s ease;pointer-events:none;
+}
+.card:hover::after{left:150%;}
+
+.dashboard{
+  background:var(--white);border:1.5px solid var(--border);
+  border-radius:22px;padding:32px 36px;margin-bottom:52px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:24px;box-shadow:var(--shadow);
+  animation:fadeUp 0.6s 0.4s ease both;
+  position:relative;overflow:hidden;
+}
+.dashboard::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:4px;
+  background:linear-gradient(90deg,var(--blue),#6366f1,var(--blue));
+  background-size:200% 100%;animation:shimmerBar 3s linear infinite;
+}
+@keyframes shimmerBar{0%{background-position:0%;}100%{background-position:200%;}}
+.dashboard-left h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.dashboard-left p{font-size:14px;color:var(--muted);font-weight:500;}
+.stats{display:flex;gap:48px;}
+.stat{text-align:center;}
+.stat-num{font-family:'Playfair Display',serif;font-size:40px;font-weight:800;color:var(--blue-dark);line-height:1;transition:transform 0.3s;}
+.stat:hover .stat-num{transform:scale(1.1);}
+.stat-label{font-size:12px;color:var(--muted);margin-top:5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:640px){
+  .logo{font-size:32px;}
+  
+  header{padding:28px 0 0 0;}
+  
+  .hero{padding:20px 0 16px 0;}
+  
+  h1.hero-title{font-size:32px;}
+  
+  .games{
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  
+  .card{padding:16px 12px 14px 12px;}
+  
+  .card h3{font-size:15px;}
+  
+  .card p{font-size:12px;}
+  
+  .dashboard{
+    flex-direction:column;
+    text-align:center;
+    padding:20px 16px;
+  }
+  
+  .stats{justify-content:center;gap:32px;}
+  
+  .stat-num{font-size:30px;}
+  
+  button[onclick="goBack()"]{
+    top:12px !important;
+    left:12px !important;
+    padding:8px 12px !important;
+    font-size:13px !important;
+  }
+  
+  .logout-btn{
+    top:12px !important;
+    right:12px !important;
+    padding:6px 12px !important;
+    font-size:13px !important;
+  }
+  
+  .mic-area{margin:28px 0 12px 0;}
+  
+  .mic-outer{width:88px;height:88px;}
+  
+  .mic-btn{font-size:30px;}
+}
+
+@media(max-width:380px){
+  .games{grid-template-columns:1fr;}
+}
+.logout-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+
+  padding: 8px 16px;
+  font-size: 14px;
+
+  background: #0a92b4;   /* lavender theme */
+  color: white;
+  border: none;
+  border-radius: 8px;
+
+  cursor: pointer;
+  z-index: 1000;
+
+  transition: 0.2s;
+}
+
+.logout-btn:hover {
+  background: #077264;
+}
+</style>
+</head>
+<body>
+<button class="logout-btn" onclick="logoutUser()">Logout</button>
+<div class="bg-decor">
+  <div class="bg-circle bc1"></div>
+  <div class="bg-circle bc2"></div>
+  <div class="bg-circle bc3"></div>
+</div>
+
+<div class="wrap">
+<button onclick="goBack()" 
+style="
+position:absolute;
+top:20px;
+left:20px;
+padding:10px 18px;
+font-size:15px;
+background:#2b5ed7;
+color:white;
+border:none;
+border-radius:8px;
+cursor:pointer;
+z-index:1000;
+">
+⬅ Back
+</button>
+  <header><div class="logo">SkillSight</div></header>
+
+  <section class="hero">
+    <h1 class="hero-title">Fun &amp; <span class="accent">Learning</span> Zone</h1>
+    <div class="mic-area">
+      <div class="mic-outer" id="micOuter">
+        <div class="mic-wave"></div>
+        <div class="mic-wave"></div>
+        <div class="mic-wave"></div>
+        <!-- KEY FIX: onclick triggers mic on user gesture -->
+        <button class="mic-btn" id="micBtn" onclick="handleMicClick()" title="Click to start">🎤</button>
+      </div>
+      <div id="waveBar">
+        <span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span>
+      </div>
+      <!-- shown before click -->
+      <div id="tapLabel">👆 Tap the mic to start</div>
+      <!-- shown after click -->
+      <div id="voiceStatus"></div>
+    </div>
+  </section>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-text">Choose Your Activity</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="games">
+    <a href="/wordquiz" class="card" id="card-word">
+      <div class="card-icon-wrap">📖</div>
+      <h3>Word Quiz</h3>
+      <p>Answer questions on Science, History, Geography and more.</p>
+      <div class="voice-chip">Say "Word Quiz"</div>
+      <div class="card-arrow">→</div>
+    </a>
+    <a href="/mathgame" class="card" id="card-math">
+      <div class="card-icon-wrap">➕</div>
+      <h3>Math Game</h3>
+      <p>Solve spoken math problems with streak bonuses and a timer.</p>
+      <div class="voice-chip">Say "Math Game"</div>
+      <div class="card-arrow">→</div>
+    </a>
+    <a href="/storytelling" class="card" id="card-story">
+      <div class="card-icon-wrap">📖</div>
+      <h3>Fill the Story</h3>
+      <p>Fill in the blanks with your voice to create a hilarious story!</p>
+      <div class="voice-chip">Say "Fill the Story"</div>
+      <div class="card-arrow">→</div>
+    </a>
+    <a href="/memorychain" class="card" id="card-memory">
+      <div class="card-icon-wrap">🧠</div>
+      <h3>Memory Chain</h3>
+      <p>Listen to growing word chains and repeat them all in order.</p>
+      <div class="voice-chip">Say "Memory Chain"</div>
+      <div class="card-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="dashboard">
+    <div class="dashboard-left">
+      <h2>Accessibility Dashboard</h2>
+      <p>Your progress saved on this device</p>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="gamesPlayed">0</div>
+        <div class="stat-label">Games Played</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="totalScore">0</div>
+        <div class="stat-label">Total Score</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ONLY SHOWING SCRIPT PART (REST SAME AS YOUR FILE) -->
+<script>
+
+// ─────────────────────────────────────────────
+// 🔊 SPEAK
+// ─────────────────────────────────────────────
+function speak(text, cb){
+  speechSynthesis.cancel()
+
+  let u = new SpeechSynthesisUtterance(text)
+  u.lang = "en-US"
+  u.rate = 0.95
+
+  u.onend = () => {
+    if(cb) cb()
+  }
+
+  speechSynthesis.speak(u)
+}
+
+// ─────────────────────────────────────────────
+// 📊 LOAD DASHBOARD
+// ─────────────────────────────────────────────
+function loadDashboard(){
+
+  let userId = localStorage.getItem("userId")
+
+  if(!userId){
+    console.log("No userId found")
+    return
+  }
+
+  fetch(`/api/dashboard?userId=${userId}`)
+    .then(res => res.json())
+    .then(data => {
+
+      document.getElementById("totalScore").innerText = data.totalScore
+      document.getElementById("gamesPlayed").innerText = data.gamesPlayed
+
+      console.log("Module Breakdown:", data.moduleBreakdown)
+
+    })
+    .catch(err => console.error("Dashboard error:", err))
+}
+function goBack(){
+  speechSynthesis.cancel()
+
+  speak("Going back", ()=>{
+    window.location.href = "/categories.html"   // 🔥 change if your main page is different
+  })
+}
+// ─────────────────────────────────────────────
+// 🎤 VOICE NAVIGATION
+// ─────────────────────────────────────────────
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
+let recognition
+
+function startVoiceNavigation(){
+
+  if(!SpeechRec) return
+
+  if(recognition){
+    try{ recognition.stop() }catch(e){}
+  }
+
+  recognition = new SpeechRec()
+  recognition.lang = "en-US"
+  recognition.continuous = true
+  recognition.interimResults = false
+
+  console.log("🎤 Mic started...")
+
+  recognition.onresult = function(e){
+    let text = e.results[e.results.length - 1][0].transcript.toLowerCase()
+    console.log("User said:", text)
+      if (
+    text.includes("logout") ||
+    text.includes("log out") ||
+    text.includes("sign out")
+  ) {
+    speak("Logging you out", logoutUser)
+    return
+  }
+    
+    if(
+  text.includes("back") ||
+  text.includes("go back") ||
+  text.includes("home")
+){
+  speak("Going back")
+  window.location.href = "/categories.html"
+  return
+}
+
+    if(text.includes("math")){
+      speak("Opening math game")
+      window.location.href = "/mathgame"
+    }
+
+    else if(text.includes("word")){
+      speak("Opening word quiz")
+      window.location.href = "/wordquiz"
+    }
+
+    else if(text.includes("story")){
+      speak("Opening fill the story")
+      window.location.href = "/storytelling"
+    }
+
+    else if(text.includes("memory")){
+      speak("Opening memory chain")
+      window.location.href = "/memorychain"
+    }
+  }
+
+  recognition.onerror = (e)=>{
+    console.log("Mic error:", e.error)
+  }
+
+  recognition.onend = ()=>{
+    console.log("Mic restarted")
+    recognition.start()   // 🔥 KEEP MIC ALWAYS ON
+  }
+
+  recognition.start()
+}
+
+// ─────────────────────────────────────────────
+// 🎤 START EVERYTHING AFTER FIRST CLICK
+// ─────────────────────────────────────────────
+function initVoiceSystem(){
+
+  let userId = localStorage.getItem("userId")
+
+  fetch(`/api/dashboard?userId=${userId}`)
+    .then(res => res.json())
+    .then(data => {
+
+      let message =
+        "Welcome to the fun and learning zone. " +
+        "You can play Math Game, Word Quiz, Fill the Story, and Memory Chain. " +
+        "You have played " + data.gamesPlayed + " games. " +
+        "Your total score is " + data.totalScore + ". " +
+        "Say a game name to begin."
+
+      speak(message, ()=>{
+        startVoiceNavigation()
+      })
+
+    })
+}
+function logoutUser() {
+  localStorage.setItem("justLoggedOut", "true");
+
+  speak("Redirecting to login page", () => {
+    window.location.href = "/index.html";
+  });
+}
+
+// ─────────────────────────────────────────────
+// 🚀 INIT
+// ─────────────────────────────────────────────
+window.onload = function(){
+
+  loadDashboard()
+
+  let started = false
+
+  function startSystem(){
+    if(started) return
+    started = true
+    initVoiceSystem()
+  }
+
+  // 🔥 Try auto start
+  setTimeout(startSystem, 500)
+
+  // 🔥 Fallback: any interaction
+  document.body.addEventListener("click", startSystem)
+  document.body.addEventListener("touchstart", startSystem)
+}
+
+</script>
+</body>
+</html>

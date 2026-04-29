@@ -1,0 +1,14 @@
+{
+  "word_quiz": [
+    {
+      "question": "Synonym of happy?",
+      "options": ["Sad", "Joyful", "Angry", "Weak"],
+      "answer": "Joyful"
+    },
+    {
+      "question": "Opposite of fast?",
+      "options": ["Quick", "Slow", "Run", "Speed"],
+      "answer": "Slow"
+    }
+  ]
+}

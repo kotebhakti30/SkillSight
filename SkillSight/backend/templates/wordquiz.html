@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Quiz</title>
+<style>
+body{text-align:center;}
+.question{font-size:26px;margin-top:40px;color:#1a3fb3;font-weight:bold;width:80%;margin-left:auto;margin-right:auto;}
+.options{margin-top:25px;font-size:20px;text-align:center;}
+.option{background:#eaf2ff;padding:12px;margin:10px auto;width:500px;border-radius:10px;}
+.listenBtn{font-size:20px;padding:15px 25px;margin-top:30px;border:none;background:#2b5ed7;color:white;border-radius:10px;cursor:pointer;}
+.listenBtn:hover{background:#1a3fb3;}
+.listenBtn:disabled{background:#aaa;cursor:not-allowed;}
+.nextBtn{font-size:20px;padding:15px 25px;margin-top:30px;margin-left:10px;border:none;background:#27ae60;color:white;border-radius:10px;cursor:pointer;}
+.nextBtn:hover{background:#229954;}
+#micStatus{font-size:18px;margin-top:15px;color:#555;min-height:28px;}
+#feedback{font-size:22px;font-weight:bold;margin-top:15px;min-height:30px;}
+
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:90vh;padding:20px;}
+#loginScreen h1{font-size:100px;color:#1a3fb3;margin-bottom:60px;line-height:1.1;}
+#startBtn{font-size:36px;padding:25px 80px;border:none;background:#2b5ed7;color:white;border-radius:14px;cursor:pointer;transition:0.2s;}
+#startBtn:hover{background:#1a3fb3;}
+#loginMicStatus{font-size:18px;color:#555;margin-top:25px;min-height:24px;}
+
+#domainScreen{padding:40px;text-align:center;}
+#domainScreen h1{font-size:64px;color:#1a3fb3;margin-bottom:10px;}
+#domainScreen h2{color:#1a3fb3;font-size:28px;margin-bottom:20px;}
+.domainGrid{display:flex;flex-wrap:wrap;justify-content:center;gap:15px;max-width:700px;margin:0 auto 30px auto;}
+.domainBtn{font-size:18px;padding:15px 25px;border:3px solid #2b5ed7;background:white;color:#2b5ed7;border-radius:12px;cursor:pointer;transition:0.2s;min-width:160px;}
+.domainBtn:hover{background:#eaf2ff;}
+.domainBtn.selected{background:#2b5ed7;color:white;}
+.startQuizBtn{font-size:20px;padding:15px 40px;border:none;background:#2b5ed7;color:white;border-radius:10px;cursor:pointer;display:none;margin-top:10px;}
+.startQuizBtn:hover{background:#1a3fb3;}
+#domainMicStatus{font-size:17px;color:#555;margin-top:15px;min-height:24px;}
+
+#quizScreen{text-align:center;}
+#quizScreen h1{font-size:64px;color:#1a3fb3;margin-bottom:10px;}
+#progressBar{width:60%;margin:20px auto 0 auto;background:#eaf2ff;border-radius:10px;height:14px;}
+#progressFill{height:14px;background:#2b5ed7;border-radius:10px;transition:width 0.4s;}
+#progressLabel{font-size:16px;color:#555;margin-top:6px;}
+#loadingMsg{font-size:20px;color:#555;margin-top:40px;}
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: Login -->
+<div id="loginScreen">
+  <h1>Word Quiz</h1>
+  <button id="startBtn" onclick="handleLogin()">Start</button>
+  <div id="loginMicStatus"></div>
+</div>
+
+<!-- SCREEN 2: Domain Selection -->
+<div id="domainScreen" style="display:none;">
+  <h1>Word Quiz</h1>
+  <h2>🎯 Choose Your Domains</h2>
+  <div id="loadingMsg">⏳ Loading domains...</div>
+  <div class="domainGrid" id="domainGrid" style="display:none;"></div>
+  <button class="startQuizBtn" id="startQuizBtn" onclick="startQuiz()">▶ Start Quiz</button>
+  <div id="domainMicStatus"></div>
+</div>
+
+<!-- SCREEN 3: Quiz -->
+<div id="quizScreen" style="display:none;">
+  <h1>Word Quiz</h1>
+  <div class="scoreboard" id="score">Score: 0</div>
+  <div id="progressBar"><div id="progressFill" style="width:0%"></div></div>
+  <div id="progressLabel"></div>
+  <div class="question" id="questionText"></div>
+  <div class="options" id="optionsBox"></div>
+  <button class="listenBtn" id="listenBtn" onclick="startAnswerListening()">🎤 Speak Answer</button>
+  <button class="listenBtn" id="stopWordBtn" onclick="confirmStopWordQuiz()" style="background:#e74c3c;margin-left:10px;">⏹ Stop</button>
+  <button class="nextBtn" id="nextWordBtn" onclick="nextQuestion()">⏭ Next</button>
+  <div id="micStatus"></div>
+  <div id="feedback"></div>
+</div>
+
+<script>
+let currentRec = null
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
+
+let currentUser = "Player"
+let selectedDomains = []
+let questionBank = {}
+let quizQuestions = []
+let score = 0, index = 0
+let domainListening = false
+let answerHandled = false
+let loginListening = false
+
+function showScreen(id){
+  ["loginScreen","domainScreen","quizScreen"].forEach(s=>{
+    document.getElementById(s).style.display = (s===id) ? "block" : "none"
+  })
+}
+
+function speak(text, onDone){
+  window.speechSynthesis.cancel()
+  let s = new SpeechSynthesisUtterance(text)
+  s.lang = "en-US"
+  s.rate = 0.9
+  if(onDone) s.onend = onDone
+  window.speechSynthesis.speak(s)
+}
+
+function setStatus(msg){
+  document.getElementById("micStatus").innerText = msg
+}
+
+function setFeedback(msg, color){
+  let el = document.getElementById("feedback")
+  el.innerText = msg
+  el.style.color = color || "#333"
+}
+
+function setDomainStatus(msg){
+  document.getElementById("domainMicStatus").innerText = msg
+}
+
+function setLoginStatus(msg){
+  document.getElementById("loginMicStatus").innerText = msg
+}
+
+function stopCurrentRecognition(){
+  if(currentRec){
+    try{ currentRec.abort() }catch(e){}
+    currentRec = null
+  }
+}
+
+function startLoginListening(){
+  if(!SpeechRec || loginListening) return
+
+  loginListening = true
+  setLoginStatus("🎤 Say 'Start' or click the button")
+
+  let rec = new SpeechRec()
+  currentRec = rec
+  rec.lang = "en-US"
+  rec.interimResults = false
+  rec.maxAlternatives = 5
+
+  rec.onresult = function(e){
+    let transcripts = []
+    for(let i=0; i<e.results[0].length; i++){
+      transcripts.push(e.results[0][i].transcript.toLowerCase().trim())
+    }
+
+    let wantsStart = transcripts.some(t =>
+      t.includes("start") || t.includes("begin") || t.includes("go")
+    )
+
+    loginListening = false
+    stopCurrentRecognition()
+
+    if(wantsStart){
+      handleLogin()
+    } else {
+      setTimeout(()=>{ startLoginListening() }, 500)
+    }
+  }
+
+  rec.onerror = function(e){
+    loginListening = false
+    currentRec = null
+
+    if(e.error === "not-allowed"){
+      setLoginStatus("⚠️ Microphone denied. Click Start button.")
+    } else if(e.error !== "aborted"){
+      setTimeout(()=>{ startLoginListening() }, 1000)
+    }
+  }
+
+  rec.onend = function(){
+    loginListening = false
+    if(currentRec === rec) currentRec = null
+  }
+
+  try{
+    rec.start()
+  }catch(e){
+    loginListening = false
+  }
+}
+
+function handleLogin(){
+  loginListening = false
+  stopCurrentRecognition()
+  window.speechSynthesis.cancel()
+  showScreen("domainScreen")
+  loadQuestions()
+}
+
+function loadQuestions(){
+  fetch("/api/game-data/word_quiz", {
+  method: "GET",
+  credentials: "include"   // ✅ THIS IS THE FIX
+})
+    .then(res=>res.json())
+    .then(data=>{
+      questionBank = data.domains.english
+      document.getElementById("loadingMsg").style.display = "none"
+      buildDomainButtons()
+      document.getElementById("domainGrid").style.display = "flex"
+
+      let domainNames = Object.keys(questionBank).join(", ")
+      speak(
+        "Starting Word Quiz. Say a domain name to select it, or click it. Available domains are: " +
+        domainNames +
+        ". Say Start Quiz when ready.",
+        ()=>{
+          startDomainListening()
+        }
+      )
+    })
+    .catch(err=>{
+      document.getElementById("loadingMsg").innerText = "❌ Failed to load questions. Please refresh."
+      console.error(err)
+    })
+}
+
+function buildDomainButtons(){
+  let grid = document.getElementById("domainGrid")
+  grid.innerHTML = ""
+
+  Object.keys(questionBank).forEach(domain=>{
+    let btn = document.createElement("button")
+    btn.className = "domainBtn"
+    btn.id = "domainBtn_" + domain
+    btn.innerText = domain
+    btn.onclick = ()=>toggleDomain(domain, true)
+    grid.appendChild(btn)
+  })
+}
+
+function toggleDomain(domain, fromClick){
+  let btn = document.getElementById("domainBtn_" + domain)
+  if(!btn) return
+
+  if(btn.classList.contains("selected")){
+    btn.classList.remove("selected")
+    selectedDomains = selectedDomains.filter(d=>d!==domain)
+    if(fromClick) speak(domain + " deselected")
+  } else {
+    btn.classList.add("selected")
+    selectedDomains.push(domain)
+    if(fromClick) speak(domain + " selected")
+  }
+
+  document.getElementById("startQuizBtn").style.display =
+    selectedDomains.length > 0 ? "inline-block" : "none"
+}
+
+function startDomainListening(){
+  if(!SpeechRec || domainListening) return
+
+  domainListening = true
+  setDomainStatus("🎤 Listening... say a domain name or say Start Quiz")
+
+  let rec = new SpeechRec()
+  currentRec = rec
+  rec.lang = "en-US"
+  rec.interimResults = false
+  rec.continuous = false
+  rec.maxAlternatives = 5
+
+  rec.onresult = function(e){
+    let transcripts = []
+    for(let i=0; i<e.results[0].length; i++){
+      transcripts.push(e.results[0][i].transcript.toLowerCase().trim())
+    }
+
+    let said = transcripts[0] || ""
+    setDomainStatus("You said: " + said)
+
+    let wantsStart = transcripts.some(t =>
+      t.includes("start quiz") || t.includes("start") || t.includes("begin") || t.includes("quiz")
+    )
+
+    let matched = null
+    for(let t of transcripts){
+      matched = Object.keys(questionBank).find(d => t.includes(d.toLowerCase()))
+      if(matched) break
+    }
+
+    domainListening = false
+    stopCurrentRecognition()
+
+    if(wantsStart && selectedDomains.length > 0){
+      speak("Starting quiz", ()=>{ startQuiz() })
+    } else if(wantsStart && selectedDomains.length === 0){
+      speak("Please select at least one domain first", ()=>{
+        startDomainListening()
+      })
+    } else if(matched){
+      toggleDomain(matched, false)
+      speak(matched + " selected. Say another domain or say Start Quiz", ()=>{
+        startDomainListening()
+      })
+    } else {
+      speak("Not recognised. Say a domain name or Start Quiz", ()=>{
+        startDomainListening()
+      })
+    }
+  }
+
+  rec.onerror = function(e){
+    domainListening = false
+    currentRec = null
+
+    if(e.error === "no-speech"){
+      setTimeout(()=>{ startDomainListening() }, 500)
+    } else if(e.error === "not-allowed"){
+      setDomainStatus("⚠️ Microphone denied. Please click domains instead.")
+    } else if(e.error !== "aborted"){
+      setTimeout(()=>{ startDomainListening() }, 1000)
+    }
+  }
+
+  rec.onend = function(){
+    domainListening = false
+    if(currentRec === rec) currentRec = null
+  }
+
+  try{
+    rec.start()
+  }catch(e){
+    domainListening = false
+  }
+}
+
+function nameToSeed(name){
+  let s = 0
+  for(let i=0; i<name.length; i++){
+    s += name.charCodeAt(i) * (i+1)
+  }
+  return s
+}
+
+function seededShuffle(arr, seed){
+  let a = [...arr]
+  for(let i=a.length-1; i>0; i--){
+    seed = (seed * 1664525 + 1013904223) & 0xffffffff
+    let j = Math.abs(seed) % (i+1)
+    ;[a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+function startQuiz(){
+  if(selectedDomains.length === 0) return
+
+  domainListening = false
+  stopCurrentRecognition()
+  window.speechSynthesis.cancel()
+
+  let seed = Date.now()   // 🔥 RANDOM EVERY TIME
+  let allQuestions = []
+
+  selectedDomains.forEach(domain=>{
+    allQuestions.push(...seededShuffle(questionBank[domain], seed))
+  })
+
+  allQuestions = seededShuffle(allQuestions, seed + 42)
+  quizQuestions = allQuestions.slice(0, 10)
+
+  score = 0
+  index = 0
+
+  showScreen("quizScreen")
+
+  if(!SpeechRec){
+    document.getElementById("micStatus").innerText = "⚠️ Voice not supported. Please use Chrome or Edge."
+    document.getElementById("listenBtn").disabled = true
+  }
+
+  showQuestion()
+}
+
+function updateProgress(){
+  let pct = Math.round((index / quizQuestions.length) * 100)
+  document.getElementById("progressFill").style.width = pct + "%"
+  document.getElementById("progressLabel").innerText =
+    "Question " + (index + 1) + " of " + quizQuestions.length
+}
+function nextQuestion(){
+  index++
+  showQuestion()
+}
+function fetchNewQuestions(){
+  stopCurrentRecognition()
+  window.speechSynthesis.cancel()
+  
+  // Fetch next 10 questions from database
+  fetch("/api/game-data/word_quiz", {
+    method: "GET",
+    credentials: "include"
+  })
+    .then(res=>res.json())
+    .then(data=>{
+      let seed = nameToSeed(currentUser)
+      let allQuestions = []
+      
+      selectedDomains.forEach(domain=>{
+        allQuestions.push(...seededShuffle(data.domains.english[domain], seed))
+      })
+      
+      allQuestions = seededShuffle(allQuestions, seed + 42)
+      quizQuestions = allQuestions.slice(0, 10)
+      
+      score = 0
+      index = 0
+      
+      showQuestion()
+    })
+    .catch(err=>{
+      console.error("Error fetching questions:", err)
+      speak("Error loading questions. Please try again.")
+    })
+}
+function saveSessionToBackend(){
+  let total = quizQuestions.length || 10
+
+  fetch("/api/save-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: localStorage.getItem("userId"),
+      module: "fun",
+      game: "word_quiz",
+      correct: score,
+      total: total
+    })
+  })
+}
+function showQuestion(){
+  stopCurrentRecognition()
+
+  if(index >= quizQuestions.length){
+    document.getElementById("score").innerText = "Final Score: " + score + " / " + quizQuestions.length
+    document.getElementById("questionText").innerText = "🎉 Quiz Complete!"
+    document.getElementById("optionsBox").innerHTML = ""
+    document.getElementById("listenBtn").style.display = "none"
+    if(document.getElementById("stopWordBtn")) document.getElementById("stopWordBtn").style.display = "none"
+    if(document.getElementById("nextWordBtn")) document.getElementById("nextWordBtn").style.display = "none"
+    document.getElementById("progressFill").style.width = "100%"
+    document.getElementById("progressLabel").innerText = "Finished!"
+    setStatus("")
+    setFeedback("")
+    saveProgress()
+    saveSessionToBackend() 
+
+    speak("Quiz complete. Your score is " + score + " out of " + quizQuestions.length + ".", ()=>{
+      setTimeout(()=>{ window.location="backend/templates/fun.html" }, 6000)
+    })
+    return
+  }
+
+  updateProgress()
+  setFeedback("")
+  setStatus("")
+  answerHandled = false
+  document.getElementById("listenBtn").disabled = false
+  document.getElementById("listenBtn").style.display = "inline-block"
+  if(document.getElementById("stopWordBtn")) document.getElementById("stopWordBtn").style.display = "inline-block"
+  if(document.getElementById("nextWordBtn")) document.getElementById("nextWordBtn").style.display = "inline-block"
+
+  let q = quizQuestions[index]
+  document.getElementById("questionText").innerText = q.q
+
+  let html = ""
+  q.options.forEach((o, i)=>{
+    html += `<div class="option">${i+1}. ${o}</div>`
+  })
+  document.getElementById("optionsBox").innerHTML = html
+
+  let optText = q.options.map((o, i)=>"Option " + (i+1) + ": " + o).join(". ")
+
+  speak(q.q + ". " + optText, ()=>{
+    if(!answerHandled){
+      setStatus("🎤 Listening... speak your answer now")
+      document.getElementById("listenBtn").disabled = true
+      autoListen()
+    }
+  })
+}
+
+function processRecognitionResult(spoken){
+  if(answerHandled) return
+  if(!spoken || spoken.length < 1) return
+
+  spoken = spoken.toLowerCase().trim()
+
+  if(
+    spoken.includes("stop") ||
+    spoken.includes("stop game") ||
+    spoken.includes("quit") ||
+    spoken.includes("exit game") ||
+    spoken.includes("go home") ||
+    spoken.includes("end game")
+  ){
+    answerHandled = true
+    stopCurrentRecognition()
+    confirmStopWordQuiz()
+    return
+  }
+
+  answerHandled = true
+  stopCurrentRecognition()
+  handleAnswerText(spoken)
+}
+
+function autoListen(){
+  if(!SpeechRec || answerHandled) return
+
+  stopCurrentRecognition()
+
+  let rec = new SpeechRec()
+  currentRec = rec
+  rec.lang = "en-US"
+  rec.interimResults = true
+  rec.continuous = true
+  rec.maxAlternatives = 5
+
+  let finalTranscript = ""
+
+  let timeout = setTimeout(()=>{
+    if(!answerHandled){
+      answerHandled = true
+      stopCurrentRecognition()
+      setFeedback("⏰ Time up!", "orange")
+      speak("Time up. The correct answer is " + quizQuestions[index].a, ()=>{
+        index++
+        showQuestion()
+      })
+    }
+  }, 10000)
+
+  rec.onresult = function(e){
+    let liveTranscript = ""
+
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      let text = e.results[i][0].transcript.toLowerCase().trim()
+
+      if(e.results[i].isFinal){
+        finalTranscript += text + " "
+      } else {
+        liveTranscript += text + " "
+      }
+    }
+
+    let combined = (finalTranscript + liveTranscript).trim()
+    if(combined.length > 0){
+      setStatus("You said: " + combined)
+    }
+
+    if(
+      combined.includes("stop") ||
+      combined.includes("stop game") ||
+      combined.includes("quit") ||
+      combined.includes("exit game") ||
+      combined.includes("go home") ||
+      combined.includes("end game")
+    ){
+      clearTimeout(timeout)
+      answerHandled = true
+      stopCurrentRecognition()
+      confirmStopWordQuiz()
+      return
+    }
+
+    if(
+      combined.includes("next") ||
+      combined.includes("next question") ||
+      combined.includes("continue")
+    ){
+      clearTimeout(timeout)
+      answerHandled = true
+      stopCurrentRecognition()
+      nextQuestion()
+      return
+    }
+
+    if(finalTranscript.trim().length > 0){
+      clearTimeout(timeout)
+      processRecognitionResult(finalTranscript.trim())
+    }
+  }
+
+  rec.onerror = function(e){
+    if(e.error === "aborted") return
+
+    if(e.error === "no-speech"){
+      setStatus("Listening...")
+    } else if(e.error === "not-allowed"){
+      setStatus("⚠️ Microphone denied.")
+    } else {
+      setStatus("⚠️ Error: " + e.error)
+    }
+  }
+
+  rec.onend = function(){
+    if(currentRec === rec) currentRec = null
+  }
+
+  try{
+    rec.start()
+  }catch(e){
+    clearTimeout(timeout)
+  }
+}
+
+function startAnswerListening(){
+  if(!SpeechRec || answerHandled) return
+
+  let btn = document.getElementById("listenBtn")
+  btn.disabled = true
+
+  setStatus("🎤 Listening... speak your answer now")
+  setFeedback("")
+
+  stopCurrentRecognition()
+
+  let rec = new SpeechRec()
+  currentRec = rec
+  rec.lang = "en-US"
+  rec.interimResults = true
+  rec.continuous = true
+  rec.maxAlternatives = 5
+
+  let finalTranscript = ""
+
+  let timeout = setTimeout(()=>{
+    if(!answerHandled){
+      answerHandled = true
+      stopCurrentRecognition()
+      setFeedback("⏰ Time up!", "orange")
+      speak("Time up. The correct answer is " + quizQuestions[index].a)
+    }
+  }, 10000)
+
+  rec.onresult = function(e){
+    let liveTranscript = ""
+
+    for(let i=e.resultIndex; i<e.results.length; i++){
+      let text = e.results[i][0].transcript.toLowerCase().trim()
+
+      if(e.results[i].isFinal){
+        finalTranscript += text + " "
+      } else {
+        liveTranscript += text + " "
+      }
+    }
+
+    let combined = (finalTranscript + liveTranscript).trim()
+    if(combined.length > 0){
+      setStatus("You said: " + combined)
+    }
+
+    if(
+      combined.includes("stop") ||
+      combined.includes("stop game") ||
+      combined.includes("quit") ||
+      combined.includes("exit game") ||
+      combined.includes("go home") ||
+      combined.includes("end game")
+    ){
+      clearTimeout(timeout)
+      answerHandled = true
+      stopCurrentRecognition()
+      confirmStopWordQuiz()
+      return
+    }
+
+    if(
+      combined.includes("next") ||
+      combined.includes("next question") ||
+      combined.includes("continue")
+    ){
+      clearTimeout(timeout)
+      answerHandled = true
+      stopCurrentRecognition()
+      nextQuestion()
+      return
+    }
+
+    if(finalTranscript.trim().length > 0){
+      clearTimeout(timeout)
+      processRecognitionResult(finalTranscript.trim())
+    }
+  }
+
+  rec.onerror = function(e){
+    if(e.error === "aborted") return
+
+    if(e.error === "not-allowed"){
+      setStatus("⚠️ Microphone denied.")
+    } else if(e.error === "no-speech"){
+      setStatus("No speech detected.")
+    } else {
+      setStatus("⚠️ Error: " + e.error)
+    }
+
+    btn.disabled = false
+  }
+
+  rec.onend = function(){
+    if(currentRec === rec) currentRec = null
+  }
+
+  try{
+    rec.start()
+  }catch(e){
+    clearTimeout(timeout)
+    btn.disabled = false
+  }
+}
+
+function handleAnswerText(spoken){
+  document.getElementById("listenBtn").disabled = false
+
+  spoken = spoken.toLowerCase().trim()
+
+  let correctAnswer = quizQuestions[index].a.toLowerCase().trim()
+  let options = quizQuestions[index].options.map(o => o.toLowerCase().trim())
+
+  setStatus("You said: " + spoken)
+
+  let matched = false
+
+  if(spoken.includes(correctAnswer)){
+    matched = true
+  }
+
+  for(let i=0; i<options.length; i++){
+    if(spoken.includes(options[i]) && options[i] === correctAnswer){
+      matched = true
+    }
+  }
+
+  let optionIndex = -1
+
+  if(
+    spoken.includes("option 1") ||
+    spoken === "1" ||
+    spoken.includes(" one") ||
+    spoken.startsWith("one")
+  ) optionIndex = 0
+  else if(
+    spoken.includes("option 2") ||
+    spoken === "2" ||
+    spoken.includes(" two") ||
+    spoken.startsWith("two")
+  ) optionIndex = 1
+  else if(
+    spoken.includes("option 3") ||
+    spoken === "3" ||
+    spoken.includes(" three") ||
+    spoken.startsWith("three")
+  ) optionIndex = 2
+  else if(
+    spoken.includes("option 4") ||
+    spoken === "4" ||
+    spoken.includes(" four") ||
+    spoken.startsWith("four")
+  ) optionIndex = 3
+
+  if(optionIndex !== -1 && options[optionIndex] === correctAnswer){
+    matched = true
+  }
+
+  if(matched){
+    score++
+    document.getElementById("score").innerText = "Score: " + score
+    setFeedback("✅ Correct!", "green")
+    speak("Correct", ()=>{
+      index++
+      showQuestion()
+    })
+  } else {
+    setFeedback("❌ Wrong! Correct: " + quizQuestions[index].a, "red")
+    speak("Wrong. The answer is " + quizQuestions[index].a, ()=>{
+      index++
+      showQuestion()
+    })
+  }
+}
+
+function saveProgress(){
+  sessionStorage.setItem(
+    "totalScore",
+    (parseInt(sessionStorage.getItem("totalScore")) || 0) + score
+  )
+
+  if(!sessionStorage.getItem("played_wordquiz")){
+    sessionStorage.setItem(
+      "gamesPlayed",
+      (parseInt(sessionStorage.getItem("gamesPlayed")) || 0) + 1
+    )
+    sessionStorage.setItem("played_wordquiz", "true")
+  }
+}
+
+window.onload = function(){
+  speak("Word Quiz. Say Start or click the button to begin.", ()=>{
+    startLoginListening()
+  })
+}
+
+function confirmStopWordQuiz(){
+  stopCurrentRecognition()
+  window.speechSynthesis.cancel()
+  answerHandled = true
+
+  let total = quizQuestions.length || 10
+  showScreen("quizScreen")
+  document.getElementById("score").innerText = "Final Score: " + score + " / " + total
+  document.getElementById("questionText").innerText = "🛑 Game Stopped"
+  document.getElementById("optionsBox").innerHTML =
+    "<p style='font-size:18px;color:#888;margin-top:20px;'>Returning to home in 5 seconds...</p>"
+  document.getElementById("listenBtn").style.display = "none"
+  if(document.getElementById("stopWordBtn")) document.getElementById("stopWordBtn").style.display = "none"
+  if(document.getElementById("nextWordBtn")) document.getElementById("nextWordBtn").style.display = "none"
+  setStatus("")
+  setFeedback("")
+  saveProgress()
+
+  speak("Game stopped. Your score is " + score + " out of " + total + ".", ()=>{
+    setTimeout(()=>{ window.location="backend/templates/fun.html" }, 3000)
+  })
+}
+</script>
+</body>
+</html>
