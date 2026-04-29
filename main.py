@@ -8,7 +8,6 @@ import mysql.connector
 import random
 import json
 from dotenv import load_dotenv
-import psycopg2
 
 load_dotenv()
 
