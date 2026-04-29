@@ -195,8 +195,6 @@ CREATE TABLE questions (
   question TEXT
 );
 INSERT INTO questions (id, type, question) VALUES
-
--- 🔹 MOCK INTERVIEW (1–25)
 (1,'mock','Tell me about yourself and your professional background.'),
 (2,'mock','What are your three greatest strengths and why?'),
 (3,'mock','What is your biggest weakness and what are you doing to improve it?'),

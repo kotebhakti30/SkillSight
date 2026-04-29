@@ -206,7 +206,16 @@ password:value("password")
 
 })
 
-.then(r=>r.json())
+.then(async r => {
+    const text = await r.text();
+
+    try {
+        return JSON.parse(text);
+    } catch (e) {
+        console.error("❌ Not JSON:", text);
+        throw new Error("Server error");
+    }
+})
 
 .then(data=>{
 
@@ -454,10 +463,16 @@ window.onload = () => {
       });
     }, 500);
   } else {
-    // ✅ ONLY NORMAL ENTRY POINT
-    setTimeout(() => {
+    // Wait for ANY user interaction before starting voice
+    document.addEventListener("click", function startOnce() {
+      document.removeEventListener("click", startOnce);
       initVoice();
-    }, 500);
+    }, { once: true });
+
+    document.addEventListener("keydown", function startOnce() {
+      document.removeEventListener("keydown", startOnce);
+      initVoice();
+    }, { once: true });
   }
 };
 
