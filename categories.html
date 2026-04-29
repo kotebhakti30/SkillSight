@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories</title>
+    <link rel="stylesheet" href="categories.css">
+    
+</head>
+<body>
+    <div>
+        <button class="logout-btn" onclick="logoutUser()">Logout</button>
+    </div> 
+    <img src="logo.png" alt="SkillSight Logo" width="200px">
+    <h3>Categories</h3>
+    <button onclick="window.location.href='/pronunciation'">Pronunciation</button>
+    <button onclick="window.location.href='/career'">Work and Career</button>
+    <button onclick="window.location.href='/fun'">Fun Learning Zone</button>
+    <script src="categories.js" defer></script>
+    <script>
+        function logout() {
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

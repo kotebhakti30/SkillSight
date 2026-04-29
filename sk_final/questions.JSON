@@ -1,0 +1,147 @@
+{
+  "word_quiz": {
+    "domains": {
+      "english": {
+        "Science": [
+          {"q": "What planet is closest to the Sun?", "options": ["Venus", "Mercury", "Mars", "Earth"], "a": "mercury"},
+          {"q": "What gas do plants absorb from the air?", "options": ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], "a": "carbon dioxide"},
+          {"q": "What is the powerhouse of the cell?", "options": ["Nucleus", "Ribosome", "Mitochondria", "Vacuole"], "a": "mitochondria"},
+          {"q": "How many bones are in the adult human body?", "options": ["206", "196", "186", "216"], "a": "206"},
+          {"q": "What force keeps us on the ground?", "options": ["Magnetism", "Friction", "Gravity", "Tension"], "a": "gravity"},
+          {"q": "What is the chemical symbol for water?", "options": ["WO", "H2O", "HO2", "W2O"], "a": "h2o"},
+          {"q": "What is the speed of light?", "options": ["300,000 km/s", "150,000 km/s", "450,000 km/s", "100,000 km/s"], "a": "300,000 km/s"},
+          {"q": "Which planet is known as the Red Planet?", "options": ["Venus", "Jupiter", "Mars", "Saturn"], "a": "mars"},
+          {"q": "What is the boiling point of water in Celsius?", "options": ["90", "95", "100", "110"], "a": "100"},
+          {"q": "How many chambers does the human heart have?", "options": ["2", "3", "4", "5"], "a": "4"}
+        ],
+
+        "Agriculture": [
+          {"q": "Which nutrient is most important for leaf growth?", "options": ["Potassium", "Phosphorus", "Nitrogen", "Calcium"], "a": "nitrogen"},
+          {"q": "What is the process of watering crops called?", "options": ["Irrigation", "Cultivation", "Harvesting", "Ploughing"], "a": "irrigation"},
+          {"q": "Which soil type is best for growing crops?", "options": ["Sandy", "Loamy", "Clay", "Rocky"], "a": "loamy"},
+          {"q": "What tool is used to plough fields?", "options": ["Sickle", "Tractor", "Harrow", "Plough"], "a": "plough"}, 
+          {"q": "Which crop is known as the golden fibre?", "options": ["Cotton", "Jute", "Silk", "Wool"], "a": "jute"},
+          {"q": "What is growing two crops together called?", "options": ["Mixed cropping", "Crop rotation", "Monoculture", "Intercropping"], "a": "intercropping"},
+          {"q": "Which vitamin is produced by sunlight on skin?", "options": ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"], "a": "vitamin d"},
+          {"q": "What is the main source of water for crops in India?", "options": ["Rivers", "Rainwater", "Groundwater", "Lakes"], "a": "rainwater"},
+          {"q": "Which crop is India the largest producer of?", "options": ["Rice", "Wheat", "Sugarcane", "Cotton"], "a": "sugarcane"},
+          {"q": "What is organic farming?", "options": ["Using chemicals", "Using natural methods", "Using machines", "Using irrigation"], "a": "using natural methods"},
+          {"q": "Which season is suitable for growing rice?", "options": ["Winter", "Summer", "Monsoon", "Spring"], "a": "monsoon"},
+          {"q": "What is the practice of growing fish and crops together called?", "options": ["Mixed farming", "Aquaculture", "Rice-fish farming", "Sericulture"], "a": "rice-fish farming"}
+        ],
+
+        "Politics": [
+          {"q": "Who is the head of government in India?", "options": ["President", "Prime Minister", "Governor", "Speaker"], "a": "prime minister"},
+          {"q": "How many members are in the Lok Sabha?", "options": ["543", "545", "552", "500"], "a": "543"},
+          {"q": "What does UN stand for?", "options": ["United Nations", "Universal Network", "United Nationals", "Union Nations"], "a": "united nations"},
+          {"q": "Which article abolishes untouchability in India?", "options": ["Article 14", "Article 17", "Article 21", "Article 32"], "a": "article 17"},
+          {"q": "Who was the first Prime Minister of India?", "options": ["Sardar Patel", "B.R. Ambedkar", "Jawaharlal Nehru", "Rajendra Prasad"], "a": "jawaharlal nehru"},
+          {"q": "What is the upper house of Indian Parliament called?", "options": ["Lok Sabha", "Rajya Sabha", "Vidhan Sabha", "Gram Sabha"], "a": "rajya sabha"},
+          {"q": "How many states are in India?", "options": ["26", "28", "29", "30"], "a": "28"},
+          {"q": "Who appoints the Prime Minister of India?", "options": ["Speaker", "Chief Justice", "President", "Vice President"], "a": "president"},
+          {"q": "What is the minimum age to vote in India?", "options": ["16", "18", "21", "25"], "a": "18"},
+          {"q": "Which body interprets the Constitution of India?", "options": ["Parliament", "Cabinet", "Supreme Court", "President"], "a": "supreme court"},
+          {"q": "What is the term of Lok Sabha?", "options": ["4 years", "5 years", "6 years", "3 years"], "a": "5 years"},
+          {"q": "Where is the Indian Parliament located?", "options": ["Mumbai", "Chennai", "Kolkata", "New Delhi"], "a": "new delhi"}
+        ],
+
+        "Technology": [
+          {"q": "What does AI stand for?", "options": ["Automated Intelligence", "Artificial Intelligence", "Applied Intelligence", "Advanced Interface"], "a": "artificial intelligence"},
+          {"q": "Which company made the Android operating system?", "options": ["Apple", "Microsoft", "Google", "Samsung"], "a": "google"},
+          {"q": "What does HTML stand for?", "options": ["Hyper Text Markup Language", "High Text Machine Language", "Hyper Transfer Markup Link", "Home Text Markup Language"], "a": "hyper text markup language"},
+          {"q": "What is the brain of a computer called?", "options": ["RAM", "Hard Disk", "CPU", "Monitor"], "a": "cpu"},
+          {"q": "Which language is used to style web pages?", "options": ["Python", "Java", "CSS", "SQL"], "a": "css"},
+          {"q": "What does GPS stand for?", "options": ["General Positioning System", "Global Positioning System", "Ground Positioning Signal", "Global Pointer System"], "a": "global positioning system"},
+          {"q": "What does RAM stand for?", "options": ["Read Access Memory", "Random Access Memory", "Rapid Access Memory", "Read And Memory"], "a": "random access memory"},
+          {"q": "Which programming language is used for web development?", "options": ["Python", "JavaScript", "C++", "Assembly"], "a": "javascript"},
+          {"q": "What is the full form of PDF?", "options": ["Printed Document Format", "Portable Document Format", "Public Document File", "Private Data Format"], "a": "portable document format"},
+          {"q": "Which company developed the Python language?", "options": ["Google", "Microsoft", "Guido van Rossum", "Apple"], "a": "guido van rossum"},
+          {"q": "What does USB stand for?", "options": ["Universal Serial Bus", "Ultra Speed Bus", "Unified System Board", "Universal System Base"], "a": "universal serial bus"},
+          {"q": "What is the most used search engine in the world?", "options": ["Bing", "Yahoo", "Google", "DuckDuckGo"], "a": "google"}
+        ],
+
+        "History": [
+          {"q": "In which year did India gain independence?", "options": ["1945", "1947", "1950", "1942"], "a": "1947"},
+          {"q": "Who built the Taj Mahal?", "options": ["Akbar", "Humayun", "Shah Jahan", "Aurangzeb"], "a": "shah jahan"},
+          {"q": "Which battle marked the beginning of British rule in India?", "options": ["Battle of Panipat", "Battle of Plassey", "Battle of Buxar", "Battle of Haldighati"], "a": "battle of plassey"},
+          {"q": "Who gave the slogan Do or Die?", "options": ["Nehru", "Tilak", "Subhash Chandra Bose", "Mahatma Gandhi"], "a": "mahatma gandhi"},
+          {"q": "The French Revolution began in which year?", "options": ["1776", "1789", "1799", "1804"], "a": "1789"},
+          {"q": "Who was the first President of the United States?", "options": ["Abraham Lincoln", "Thomas Jefferson", "George Washington", "John Adams"], "a": "george washington"},
+          {"q": "Who wrote the Indian National Anthem?", "options": ["Bankim Chandra", "Rabindranath Tagore", "Subhash Chandra Bose", "Sarojini Naidu"], "a": "rabindranath tagore"},
+          {"q": "In which year was the Constitution of India adopted?", "options": ["1947", "1948", "1949", "1950"], "a": "1949"},
+          {"q": "Who is known as the Iron Man of India?", "options": ["Nehru", "Rajendra Prasad", "Sardar Patel", "Bhagat Singh"], "a": "sardar patel"},
+          {"q": "Which civilization is the oldest in the world?", "options": ["Greek", "Roman", "Mesopotamian", "Egyptian"], "a": "mesopotamian"},
+          {"q": "When did World War 2 end?", "options": ["1943", "1944", "1945", "1946"], "a": "1945"},
+          {"q": "Who was the first person to walk on the Moon?", "options": ["Buzz Aldrin", "Neil Armstrong", "Yuri Gagarin", "Michael Collins"], "a": "neil armstrong"} 
+
+        ],
+
+        "Geography": [
+          {"q": "What is the longest river in the world?", "options": ["Amazon", "Yangtze", "Nile", "Ganges"], "a": "nile"},
+          {"q": "Which is the largest continent?", "options": ["Africa", "North America", "Europe", "Asia"], "a": "asia"},
+          {"q": "What is the capital of Australia?", "options": ["Sydney", "Melbourne", "Canberra", "Brisbane"], "a": "canberra"},
+          {"q": "Which ocean is the largest?", "options": ["Atlantic", "Indian", "Arctic", "Pacific"], "a": "pacific"},
+          {"q": "Mount Everest is in which mountain range?", "options": ["Alps", "Andes", "Himalayas", "Rockies"], "a": "himalayas"},
+          {"q": "Which country has the most natural lakes?", "options": ["Russia", "USA", "Brazil", "Canada"], "a": "canada"},
+          {"q": "What is the smallest country in the world?", "options": ["Monaco", "Nauru", "Vatican City", "San Marino"], "a": "vatican city"},
+          {"q": "Which is the largest desert in the world?", "options": ["Sahara", "Arabian", "Gobi", "Antarctic"], "a": "antarctic"},
+          {"q": "What is the capital of Japan?", "options": ["Osaka", "Kyoto", "Tokyo", "Hiroshima"], "a": "tokyo"},
+          {"q": "Which river flows through Egypt?", "options": ["Amazon", "Congo", "Nile", "Niger"], "a": "nile"},
+          {"q": "Which is the tallest waterfall in the world?", "options": ["Niagara", "Victoria", "Angel Falls", "Iguazu"], "a": "angel falls"},
+          {"q": "What is the capital of Brazil?", "options": ["Rio de Janeiro", "Sao Paulo", "Brasilia", "Salvador"], "a": "brasilia"}
+        ],
+
+        "Sports": [
+          {"q": "How many players are in a football team on the field?", "options": ["9", "10", "11", "12"], "a": "11"},
+          {"q": "Which country invented cricket?", "options": ["Australia", "India", "England", "South Africa"], "a": "england"},
+          {"q": "How many rings are on the Olympic flag?", "options": ["4", "5", "6", "7"], "a": "5"},
+          {"q": "In which sport is love used for zero?", "options": ["Cricket", "Tennis", "Badminton", "Squash"], "a": "tennis"},
+          {"q": "Who has won the most Grand Slam tennis titles?", "options": ["Roger Federer", "Rafael Nadal", "Novak Djokovic", "Pete Sampras"], "a": "novak djokovic"},
+          {"q": "How many points is a touchdown worth?", "options": ["3", "6", "7", "2"], "a": "6"},
+          {"q": "Which country has won the most FIFA World Cups?", "options": ["Germany", "Argentina", "Italy", "Brazil"], "a": "brazil"},
+          {"q": "How many players are on a basketball team on court?", "options": ["4", "5", "6", "7"], "a": "5"},
+          {"q": "In which city were the first modern Olympic Games held?", "options": ["Rome", "Paris", "Athens", "London"], "a": "athens"},
+          {"q": "What is the national sport of Japan?", "options": ["Judo", "Karate", "Sumo", "Kendo"], "a": "sumo"},
+          {"q": "How long is a standard marathon in kilometers?", "options": ["40", "42.195", "44", "38"], "a": "42.195"},
+          {"q": "Which Indian cricketer is known as the God of Cricket?", "options": ["Virat Kohli", "MS Dhoni", "Sachin Tendulkar", "Rohit Sharma"], "a": "sachin tendulkar"}
+        ],
+
+        "Health": [
+          {"q": "How many hours of sleep do adults need per night?", "options": ["4 to 5", "6 to 7", "7 to 9", "10 to 12"], "a": "7 to 9"},
+          {"q": "Which vitamin does sunlight provide?", "options": ["Vitamin A", "Vitamin B", "Vitamin C", "Vitamin D"], "a": "vitamin d"},
+          {"q": "What is the normal human body temperature in Celsius?", "options": ["35", "36", "37", "38"], "a": "37"},
+          {"q": "Which organ pumps blood through the body?", "options": ["Lungs", "Liver", "Kidney", "Heart"], "a": "heart"},
+          {"q": "Which food group gives the most energy?", "options": ["Proteins", "Fats", "Carbohydrates", "Vitamins"], "a": "carbohydrates"},
+          {"q": "How many times does a healthy heart beat per minute?", "options": ["40 to 50", "60 to 100", "110 to 130", "30 to 40"], "a": "60 to 100"},
+          {"q": "Which vitamin helps in blood clotting?", "options": ["Vitamin A", "Vitamin C", "Vitamin D", "Vitamin K"], "a": "vitamin k"},
+          {"q": "What is the largest organ of the human body?", "options": ["Brain", "Liver", "Skin", "Lungs"], "a": "skin"},
+          {"q": "How much water should an adult drink per day?", "options": ["1 litre", "2 litres", "3 litres", "4 litres"], "a": "2 litres"},
+          {"q": "Which mineral is most important for strong bones?", "options": ["Iron", "Zinc", "Calcium", "Magnesium"], "a": "calcium"},
+          {"q": "What does BMI stand for?", "options": ["Body Mass Index", "Blood Mass Index", "Body Muscle Index", "Bone Mass Index"], "a": "body mass index"}
+
+        ]
+      },
+
+      "aptitude": [
+        {"q": "What is 7 plus 6?", "options": ["11","12","13","14"], "a": "13"},
+        {"q": "What is 8 minus 3?", "options": ["4","5","6","7"], "a": "5"},
+        {"q": "What is 4 times 3?", "options": ["10","11","12","13"], "a": "12"},
+        {"q": "What is 15 divided by 3?", "options": ["3","4","5","6"], "a": "5"},
+        {"q": "What is 9 plus 8?", "options": ["15","16","17","18"], "a": "17"},
+        {"q": "What is 6 times 7?", "options": ["40","42","44","48"], "a": "42"},
+        {"q": "What is 20 minus 13?", "options": ["5","6","7","8"], "a": "7"},
+        {"q": "What is 3 times 9?", "options": ["24","27","30","33"], "a": "27"}
+      ]
+    }
+  },
+
+  "memory_chain": {
+    "sequences": [
+      ["Lion","Tiger","Elephant","Monkey","Parrot","Snake","Frog","Owl","Dog","Cat"],
+      ["Apple","Mango","Banana","Orange","Grape","Melon","Peach","Lemon","Plum","Berry"],
+      ["Red","Blue","Green","Yellow","Purple","Orange","White","Black","Pink","Brown"],
+      ["Chair","Table","Pencil","Bottle","Clock","Flower","Candle","Ladder","Mirror","Bucket"],
+      ["River","Forest","Mountain","Desert","Island","Valley","Bridge","Village","Castle","Garden"]
+    ]
+  }
+}

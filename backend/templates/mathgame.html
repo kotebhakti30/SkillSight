@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Game</title>
+<link rel="stylesheet" href="/static/style.css">
+<style>
+body{text-align:center;}
+h1{font-size:64px;color:#1a3fb3;margin-bottom:10px;}
+.question{font-size:26px;margin-top:40px;color:#1a3fb3;font-weight:bold;width:80%;margin-left:auto;margin-right:auto;}
+.scoreboard{font-size:20px;font-weight:bold;}
+.options{margin-top:25px;font-size:20px;}
+.option{background:#eaf2ff;padding:12px;margin:10px auto;width:500px;border-radius:10px;}
+.option.correct{background:#c8f7c5;border:2px solid green;}
+.option.wrong{background:#ffd5d5;border:2px solid red;}
+.listenBtn{font-size:20px;padding:15px 25px;margin-top:30px;border:none;background:#2b5ed7;color:white;border-radius:10px;cursor:pointer;}
+.listenBtn:hover{background:#1a3fb3;}
+.listenBtn:disabled{background:#aaa;cursor:not-allowed;}
+.stopBtn{font-size:20px;padding:15px 25px;margin-top:30px;margin-left:10px;border:none;background:#e74c3c;color:white;border-radius:10px;cursor:pointer;}
+.stopBtn:hover{background:#c0392b;}
+.nextBtn{font-size:20px;padding:15px 25px;margin-top:30px;border:none;background:#27ae60;color:white;border-radius:10px;cursor:pointer;}
+.nextBtn:hover{background:#229954;}
+.button-container{display:flex;gap:15px;justify-content:center;margin-top:15px;}
+#micStatus{font-size:18px;margin-top:15px;color:#555;min-height:28px;}
+#feedback{font-size:22px;font-weight:bold;margin-top:15px;min-height:30px;}
+#streak{font-size:22px;margin:10px;color:#e67e22;font-weight:bold;min-height:28px;}
+#progressBar{width:60%;margin:20px auto 0 auto;background:#eaf2ff;border-radius:10px;height:14px;}
+#progressFill{height:14px;background:#2b5ed7;border-radius:10px;transition:width 0.4s;}
+#progressLabel{font-size:16px;color:#555;margin-top:6px;}
+#timerBox{margin:10px auto;width:60px;height:60px;border-radius:50%;border:5px solid #2b5ed7;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;color:#1a3fb3;transition:border-color 0.3s;}
+#timerBox.urgent{border-color:red;color:red;animation:pulse 0.5s infinite;}
+@keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+#waveform{display:flex;align-items:center;justify-content:center;gap:4px;height:40px;margin:10px auto;}
+#waveform span{display:inline-block;width:6px;background:#2b5ed7;border-radius:3px;height:6px;}
+#waveform.active span:nth-child(1){animation:wave 0.6s 0.0s infinite ease-in-out;}
+#waveform.active span:nth-child(2){animation:wave 0.6s 0.1s infinite ease-in-out;}
+#waveform.active span:nth-child(3){animation:wave 0.6s 0.2s infinite ease-in-out;}
+#waveform.active span:nth-child(4){animation:wave 0.6s 0.3s infinite ease-in-out;}
+#waveform.active span:nth-child(5){animation:wave 0.6s 0.4s infinite ease-in-out;}
+#waveform.active span:nth-child(6){animation:wave 0.6s 0.1s infinite ease-in-out;}
+#waveform.active span:nth-child(7){animation:wave 0.6s 0.2s infinite ease-in-out;}
+@keyframes wave{0%,100%{height:6px}50%{height:32px}}
+@keyframes flashGreen{0%{background:#c8f7c5}100%{background:transparent}}
+@keyframes flashRed{0%{background:#ffd5d5}100%{background:transparent}}
+.flash-correct{animation:flashGreen 0.8s ease-out;}
+.flash-wrong{animation:flashRed 0.8s ease-out;}
+#confettiCanvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:999;display:none;}
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+<h1>Math Game</h1>
+<div class="scoreboard" id="score">Score: 0</div>
+<div id="progressBar"><div id="progressFill" style="width:0%"></div></div>
+<div id="progressLabel"></div>
+<div id="streak"></div>
+<div id="timerBox">10</div>
+<div class="question" id="questionText"></div>
+<div class="options" id="optionsBox"></div>
+
+<div class="button-container">
+  <button class="listenBtn" onclick="startManualListen()">🎤 Speak Answer</button>
+  <button class="stopBtn" onclick="stopAll()">⏹ Stop</button>
+  <button class="nextBtn" onclick="nextQuestion()">⏭ Next</button>
+</div>
+
+<div id="waveform">
+  <span></span><span></span><span></span><span></span>
+  <span></span><span></span><span></span>
+</div>
+<div id="micStatus"></div>
+<div id="feedback"></div>
+<audio id="correctSound" src="/static/sounds/correct.mp3"></audio>
+
+<script>
+let currentQuestion = null
+let isStopped = false
+const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition
+
+let questions = []
+let score = 0
+let totalQuestions = 10
+let recognition
+
+// ── FETCH QUESTIONS ─────────────────────
+async function loadQuestions(){
+  try{
+    console.log("Fetching questions...")
+
+    let res = await fetch("/api/mathquestions")
+
+    if(!res.ok){
+      throw new Error("Server error: " + res.status)
+    }
+
+    let data = await res.json()
+
+    console.log("DB DATA:", data)
+
+    questions = data
+
+    if(questions.length === 0){
+      document.getElementById("questionText").innerText = "No questions found"
+      return
+    }
+
+    // Keep only first 10 questions
+    questions = questions.slice(0, 10)
+    totalQuestions = questions.length
+    showQuestion()
+
+  }catch(err){
+    console.error("Error:", err)
+  }
+}
+
+// ── SPEAK ───────────────────────────────
+function speak(text, cb){
+  speechSynthesis.cancel()
+
+  let u = new SpeechSynthesisUtterance(text)
+  u.lang = "en-US"
+
+  u.onstart = () => {
+    pauseListening()   // 🔥 STOP mic while speaking
+  }
+
+  u.onend = () => {
+    if(cb) cb()
+
+    resumeListening()  // 🔥 RESTART mic after speaking
+  }
+
+  speechSynthesis.speak(u)
+}
+function formatQuestionForSpeech(text){
+  return text
+    .replace(/\+/g, " plus ")
+    .replace(/-/g, " minus ")
+    .replace(/\*/g, " multiplied by ")
+    .replace(/x/gi, " multiplied by ")
+    .replace(/\//g, " divided by ")
+    .replace(/=/g, " equals ")
+}
+// ── SHOW QUESTION ───────────────────────
+function showQuestion(){
+  if(isStopped) return
+
+  let q = questions[Math.floor(Math.random() * questions.length)]
+  currentQuestion = q
+
+  document.getElementById("questionText").innerText = q.q
+
+  let html = ""
+  q.options.forEach((opt, i)=>{
+    html += `<div class="option">${i+1}. ${opt}</div>`
+  })
+  document.getElementById("optionsBox").innerHTML = html
+
+  // 🔥 FORMAT FOR SPEECH
+  let spokenQuestion = formatQuestionForSpeech(q.q)
+
+  let fullText = spokenQuestion + ". "
+
+  q.options.forEach((opt, i)=>{
+    let spokenOpt = formatQuestionForSpeech(opt)
+    fullText += "Option " + (i+1) + ": " + spokenOpt + ". "
+  })
+
+  speak(fullText, ()=>{
+    setTimeout(startListening, 500)
+  })
+}
+
+// ── LISTEN ──────────────────────────────
+function startListening(){
+  if(!SpeechRec || isStopped) return
+
+  if(recognition){
+    try{ recognition.stop() }catch(e){}
+  }
+
+  recognition = new SpeechRec()
+  recognition.lang = "en-US"
+  recognition.continuous = true          // 🔥 ALWAYS LISTEN
+  recognition.interimResults = false
+
+  console.log("🎤 Continuous listening started...")
+
+  recognition.onresult = function(e){
+    let text = e.results[e.results.length - 1][0].transcript.toLowerCase().trim()
+    console.log("User said:", text)
+
+    // 🔥 COMMANDS
+    if(text.includes("stop")){
+      stopAll()
+      return
+    }
+
+    if(text.includes("next")){
+      nextQuestion()
+      return
+    }
+
+    let userAns = normalizeAnswer(text)
+    let correctAns = normalizeAnswer(currentQuestion.a)
+
+    if(
+      userAns === correctAns ||
+      text.includes(correctAns)
+    ){
+      score++
+      document.getElementById("score").innerText = "Score: " + score
+      updateProgressBar()
+
+      pauseListening()
+
+      speak("Correct answer", ()=>{
+        nextQuestion()
+      })
+
+    } else {
+      pauseListening()
+
+      speak("Wrong answer. Correct is " + currentQuestion.a, ()=>{
+        nextQuestion()
+      })
+    }
+  }
+
+  recognition.onerror = function(e){
+    console.log("Mic error:", e.error)
+  }
+
+  recognition.onend = function(){
+    console.log("Mic ended → restarting")
+
+    if(!isStopped){
+      recognition.start()   // 🔥 KEEP IT ALIVE
+    }
+  }
+
+  recognition.start()
+}
+function pauseListening(){
+  if(recognition){
+    try{ recognition.stop() }catch(e){}
+  }
+}
+function resumeListening(){
+  if(!isStopped){
+    setTimeout(()=>{
+      startListening()
+    }, 500)
+  }
+}
+
+function nextQuestion(){
+  if(isStopped) return
+
+  // stop mic completely
+  if(recognition){
+    try{ recognition.stop() }catch(e){}
+  }
+
+  // stop any ongoing speech
+  speechSynthesis.cancel()
+
+  // small delay for clean transition
+  setTimeout(()=>{
+    showQuestion()
+  }, 500)
+}
+function updateProgressBar(){
+  let percentage = (score / totalQuestions) * 100
+  document.getElementById("progressFill").style.width = percentage + "%"
+  document.getElementById("progressLabel").innerText = score + " of " + totalQuestions
+}
+function normalizeAnswer(text){
+  text = text.toLowerCase().trim()
+
+  const map = {
+    "one":"1","two":"2","three":"3","four":"4",
+    "five":"5","six":"6","seven":"7","eight":"8",
+    "nine":"9","ten":"10","eleven":"11","twelve":"12"
+  }
+
+  return map[text] || text
+}
+function stopAll(){
+  
+  isStopped = true
+
+  if(recognition){
+    try{ recognition.stop() }catch(e){}
+  }
+
+  speechSynthesis.cancel()
+
+  let finalScore = score
+  fetch("/api/save-session", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: localStorage.getItem("userId"),
+      module: "fun",
+      game: "math",
+      correct: finalScore,
+      total: 10   // or total questions
+    })
+  })
+  // 🔥 GET OLD VALUES
+  let totalScore = localStorage.getItem("totalScore") || 0
+  let gamesPlayed = localStorage.getItem("gamesPlayed") || 0
+
+  // 🔥 UPDATE VALUES
+  totalScore = parseInt(totalScore) + finalScore
+  gamesPlayed = parseInt(gamesPlayed) + 1
+
+  // 🔥 SAVE BACK
+  localStorage.setItem("totalScore", totalScore)
+  localStorage.setItem("gamesPlayed", gamesPlayed)
+
+  // SPEAK
+  speak("Your final score is " + finalScore, ()=>{
+    window.location.href = "backend/templates/fun.html"
+  })
+}
+
+// ── MANUAL BUTTON ───────────────────────
+function startManualListen(){
+  if(currentQuestion){
+    isStopped = false
+    startListening()
+  }
+}
+
+// ── INIT (AUTO START FIX) ───────────────
+window.onload = () => {
+  setTimeout(loadQuestions, 500)
+}
+</script>
+</body>
+</html>
