@@ -206,16 +206,7 @@ password:value("password")
 
 })
 
-.then(async r => {
-    const text = await r.text();
-
-    try {
-        return JSON.parse(text);
-    } catch (e) {
-        console.error("❌ Not JSON:", text);
-        throw new Error("Server error");
-    }
-})
+.then(r=>r.json())
 
 .then(data=>{
 
